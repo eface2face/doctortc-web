@@ -22,7 +22,7 @@ $ gem install compass --pre
 
 * Get the source code and enter the root directory.
 ```
-$ cd DoctoRTCWeb/
+$ cd doctortcweb/
 ```
 
 * Install Node dependencies:
