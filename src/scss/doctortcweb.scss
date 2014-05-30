@@ -36,9 +36,16 @@ body#doctortcweb {
 	// @include user-select(none);
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	background-color: #a90329; // Old browsers
-	@include filter-gradient(#a90329, #6d0019, vertical); // IE6-9
-	@include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%));
+
+	// Wine color.
+	// background-color: #a90329; // Old browsers
+	// @include filter-gradient(#a90329, #6d0019, vertical); // IE6-9
+	// @include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%));
+
+	// eFace2Face colors.
+	background-color: #01a38d; // Old browsers
+	@include filter-gradient(#01a38d, #082a42, vertical); // IE6-9
+	@include background-image(linear-gradient(top, #01a38d 0%,#0b617f 25%,#103769 50%,#0c3056 75%,#082a42 100%));
 
 	// Reset custom styles built-in browsers.
 	@import "reset";
@@ -57,7 +64,7 @@ body#doctortcweb {
 			font-weight: bold;
 			font-size: 200%;
 			line-height: 2.5em;
-			@include text-shadow(0px 0px 10px 0px rgba(yellow,0.4));
+			@include text-shadow(0px 0px 10px 0px rgba(white,0.4));
 		}
 	}  // div.header
 
@@ -73,7 +80,7 @@ body#doctortcweb {
 		// background-color: rgba(#000, 0.1);
 		background-image: url('/src/images/title-bg.png');
 		margin-bottom: 50px;
-		@include text-shadow(0px 0px 15px 0px rgba(yellow,0.75));
+		@include text-shadow(0px 0px 15px 0px rgba(white,0.75));
 	}  // div.title
 
 
