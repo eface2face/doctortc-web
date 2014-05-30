@@ -29,7 +29,7 @@ body#doctortcweb {
 	margin-bottom: $footerHeight;
 	font-family: "Varela Round", helvetica, arial, sans-serif;
 	font-size: 100%;
-	-webkit-font-smoothing: antialiased;
+	// -webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	-webkit-text-size-adjust: 100%;
 	-ms-text-size-adjust: 100%;
@@ -110,7 +110,7 @@ body#doctortcweb {
 
 				> h2 {
 					color: #666;
-					//color: #d40130;
+					margin-bottom: 0.5em;
 				}
 			}
 		}  // div.content
