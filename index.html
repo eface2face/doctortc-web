@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+	<meta charset='utf-8'>
+	<title>DoctoRTCWeb</title>
+	<!-- CSS -->
+	<link rel='stylesheet' type='text/css' href='src/css/doctortcweb.css' media='screen' />
+	<link rel='stylesheet' type='text/css' href='css/jquery-ui-1.10.4.custom.min.css' media='screen' />
+	<!-- Fonts -->
+	<script src='http://use.edgefonts.net/source-sans-pro:n3,i3,n4,i4,n6,i6,n7,i7.js'></script>
+	<script src='http://use.edgefonts.net/source-code-pro.js'></script>
+	<!-- JS -->
+	<script src='js/jquery-2.1.1.min.js'></script>
+	<script src='js/jquery-ui-1.10.4.custom.min.js'></script>
+	<script src='js/doctortc-devel.js'></script>
+	<script src='dist/doctortcweb-devel.js'></script>  <!-- TODO: move to js/ -->
+
+	<script type='text/javascript'>
+		$(document).ready(function() {
+			var doctoRTCWeb = new DoctoRTCWeb();
+			window.setTimeout(function() {
+				doctoRTCWeb.run();
+			}, 500);
+		});
+	</script>
+</head>
+
+
+<body id='doctortcweb'>
+
+	<div class='header'>
+		<div class='logo'>doctortc.js</div>
+	</div>
+
+	<h1 class='title'>The WebRTC Tester</h1>
+
+	<div class='container'>
+		<div class='content'>
+
+			<div class='test hasWebRTC'>
+				<h2>WebRTC support</h2>
+				<div class='result'></div>
+			</div>
+
+			<div class='test network udp2udp'>
+				<h2>UDP connectivity test</h2>
+				<div class='widget'></div>
+			</div>
+
+			<div class='test network tcp2tcp'>
+				<h2>TCP connectivity test</h2>
+				<div class='widget'></div>
+			</div>
+
+		</div>
+	</div>
+
+	<div class='footer'>
+		<div class='ef2f'>
+			<p>powered by</p>
+			<a href='http://www.eface2face.com' target='_blank'></a>
+		</div>
+	</div>
+
+</body>
+
+
+</html>

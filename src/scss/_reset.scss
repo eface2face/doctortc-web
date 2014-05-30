@@ -1,0 +1,23 @@
+/*
+ * Reset custom browser styles within #doctortcweb div.
+ */
+
+div, span, img, h1, h2, h3, h4, h5, h6, p, ul, li, a, form, input, select, textarea, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  font-weight: inherit;
+  word-wrap: inherit;
+  overflow-wrap: inherit;
+  text-indent: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+video {
+  display: block;
+}

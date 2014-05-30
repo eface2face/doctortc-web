@@ -1,0 +1,147 @@
+//@import "compass";
+@import "compass/css3/border-radius";
+@import "compass/css3/user-interface";
+@import "compass/css3/transition";
+@import "compass/css3/box-shadow";
+@import "compass/css3/text-shadow";
+@import "compass/css3/images";  // For @include filter-gradient" (IE).
+@import "compass/css3/background-size";
+@import "compass/css3/box-sizing";
+@import "compass/css3/background-clip";
+@import "compass/css3/transform";
+@import "compass/css3/flexbox";
+
+
+$footerHeight: 70px;
+
+
+html {
+	padding: 0;
+	margin: 0;
+	position: relative;
+	min-height: 100%;
+}
+
+body#doctortcweb {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	margin-bottom: $footerHeight;
+	font-family: source-sans-pro, helvetica, arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	font-size: 100%;
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+	// @include user-select(none);
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	background-color: #a90329; // Old browsers
+	@include filter-gradient(#a90329, #6d0019, vertical); // IE6-9
+	@include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%));
+
+	// Reset custom styles built-in browsers.
+	@import "reset";
+
+
+	// Header.
+	> div.header {
+		position: relative;
+
+		> div.logo {
+			position: relative;
+			top: 0;
+			left: 100px;
+			width: 200px;
+			color: #FFF;
+			font-weight: bold;
+			font-size: 200%;
+			line-height: 2.5em;
+			@include text-shadow(0px 0px 10px 0px rgba(yellow,0.4));
+		}
+	}  // div.header
+
+
+	// Title.
+	> h1.title {
+		color: #FFF;
+		font-weight: lighter;
+		font-size: 300%;
+		line-height: 2.5em;
+		text-align: center;
+		text-transform: uppercase;
+		// background-color: rgba(#000, 0.1);
+		background-image: url('/src/images/title-bg.png');
+		margin-bottom: 50px;
+		@include text-shadow(0px 0px 15px 0px rgba(yellow,0.75));
+	}  // div.title
+
+
+	// Container.
+	> div.container {
+		width: 100%;
+		margin-bottom: $footerHeight + 50;
+		@include display-flex();
+		@include justify-content(center);
+
+		// Content.
+		> div.content {
+			width: 50%;
+			min-width: 800px;
+			padding: 40px;
+			background: rgba(#FFFFFF, 0.9);
+			@include border-radius(10px);
+			@include box-shadow(0px 5px 15px 0px rgba(#000,0.5));
+			overflow: visible;
+
+			> div.test {
+				margin-bottom: 2em;
+				// Remove margin-bottom in last element.
+				&:last-child { margin-bottom: 0 }
+				color: #888;
+
+				> h2 {
+					color: #666;
+					//color: #d40130;
+				}
+			}
+		}  // div.content
+	}  // div.container
+
+
+	> div.footer {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		height: $footerHeight;
+		width: 100%;
+		@include box-sizing(border-box);
+		padding: 10px 100px 20px 100px;
+		// background-color: rgba(#FFF, 0.9);
+
+		background-color: #ffffff; // Old browsers
+		@include filter-gradient(#ffffff, #ffffff, vertical); // IE6-9
+		@include background-image(linear-gradient(top, #ffffff 0%,#f3f3f3 38%,#ededed 39%,#ffffff 100%));
+
+		@include box-shadow(0px 0px 15px 0px rgba(#000,0.75));
+		overflow: visible;
+		color: #555;
+		font-size: 0.85em;
+		@include display-flex();
+		@include justify-content(center);
+
+		> div.ef2f {
+			@include align-self(center);
+			text-align: center;
+			a {
+				display: block;
+				background: center url('/src/images/eFace2Face-logo.png') no-repeat;
+				height: 24px;
+				width: 150px;
+				text-decoration: none;
+			}
+		}
+	}  // div.footer
+
+
+}  // #doctortcweb
