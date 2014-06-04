@@ -22,7 +22,8 @@ var DoctoRTCWeb = (function() {
 				credential: 'ef2f'
 			},
 			options: {
-				numPackets: 200
+				numPackets: 100,
+				connectTimeout: 20000
 			}
 		};
 
