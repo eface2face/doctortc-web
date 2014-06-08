@@ -2,7 +2,7 @@
 	var NetworkTestWidget;
 
 	NetworkTestWidget = function(parentDom, turn, options, ondone) {
-		parentDom.append(DoctoRTCWeb.Html['NetworkTestWidget']);
+		parentDom.append(DoctoRTCWeb.Html.NetworkTestWidget);
 
 		this.dom = parentDom.find('.NetworkTestWidget');
 		this.turn = turn;
@@ -12,10 +12,17 @@
 		this.dom.status = this.dom.find('.status');
 		this.dom.status.description = this.dom.status.find('.description');
 		this.dom.status.progressbar = this.dom.status.find('.progressbar');
+		this.dom.statistics = this.dom.find('.statistics');
+		this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
+		this.dom.statistics.packetsSentValue = this.dom.statistics.find('.packetsSent .value');
+		this.dom.statistics.outOfOrderValue = this.dom.statistics.find('.outOfOrder .value');
+		this.dom.statistics.packetLossValue = this.dom.statistics.find('.packetLoss .value');
+		this.dom.statistics.avgElapsedTimeValue = this.dom.statistics.find('.avgElapsedTime .value');
 
 		// Hide stuff.
 		this.dom.status.description.hide();
 		this.dom.status.progressbar.hide();
+		this.dom.statistics.hide();
 
 		this.run();
 	};
@@ -37,7 +44,7 @@
 			// callback
 			function(packetsInfo, statistics) {
 				self.setStatus('success');
-				// self.onSuccess(packetsInfo, statistics);
+				self.onSuccess(packetsInfo, statistics);
 
 				if (self.ondone) {
 					self.ondone();
@@ -82,8 +89,8 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'slow');
-				}, 1000);
+					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'normal');
+				}, 100);
 
 				break;
 
@@ -92,15 +99,28 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'slow');
-				}, 1000);
+					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'normal');
+				}, 100);
 
 				break;
 		}
 	};
 
-	NetworkTestWidget.prototype.onSucess = function() {
+	NetworkTestWidget.prototype.onSuccess = function(packetsInfo, statistics) {
+		this.dom.statistics.slideDown('fast');
 
+		this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
+		this.dom.statistics.packetsSentValue.text(statistics.packetsSent);
+		this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder + ' %');
+		this.dom.statistics.packetLossValue.text(statistics.packetLoss + ' %');
+		this.dom.statistics.avgElapsedTimeValue.text(statistics.avgElapsedTime + ' ms');
+
+
+
+		console.log("packetsInfo:");
+		console.log(packetsInfo);
+		console.log("statistics:");
+		console.log(statistics);
 	};
 
 	DoctoRTCWeb.NetworkTestWidget = NetworkTestWidget;

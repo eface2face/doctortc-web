@@ -3,13 +3,18 @@ var DoctoRTCWeb = (function() {
 	"use strict";
 
 	var DoctoRTCWeb;
+	var C = {
+		INTER_TESTS_DELAY: 1000
+	};
 
 	DoctoRTCWeb = function() {
 		this.dom = $('#doctortcweb');
 		this.dom.hasWebRTC = this.dom.find('.hasWebRTC');
 		this.dom.hasWebRTC.result = this.dom.hasWebRTC.find('.result');
+		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
+		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
 
-		this.networkTests = ["udp2udp", "tcp2tcp"];  // TODO
+		this.networkTests = ["udp2udp", "tcp2tcp"];
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',
@@ -22,7 +27,7 @@ var DoctoRTCWeb = (function() {
 				credential: 'ef2f'
 			},
 			options: {
-				numPackets: 100,
+				numPackets: 50,
 				connectTimeout: 20000
 			}
 		};
@@ -31,6 +36,8 @@ var DoctoRTCWeb = (function() {
 
 		// Hide at start.
 		this.dom.hasWebRTC.result.hide();
+		this.dom.networkTestUdp2Udp.hide();
+		this.dom.networkTestTcp2Tcp.hide();
 	};
 
 	DoctoRTCWeb.prototype.setEvents = function() {
@@ -47,7 +54,7 @@ var DoctoRTCWeb = (function() {
 
 		window.setTimeout(function() {
 			self.testNetwork();
-		}, 500);
+		}, C.INTER_TESTS_DELAY);
 	};
 
 	DoctoRTCWeb.prototype.checkWebRTCSupport = function() {
@@ -76,24 +83,30 @@ var DoctoRTCWeb = (function() {
 		var turn = null;
 		var options = this.networkTestsSettings.options;
 		var ondone = function() {
-			self.testNetwork();
+			// Scroll down.
+			$('html, body').animate({ scrollTop: $(document).height() }, 'slow');
+			// Next test.
+			window.setTimeout(function() {
+				self.testNetwork();
+			}, C.INTER_TESTS_DELAY);
 		};
 
 		switch(test) {
-
 			case 'udp2udp':
-				parentDom = this.dom.find('.test.network.udp2udp');
+				parentDom = this.dom.networkTestUdp2Udp;
 				turn = this.networkTestsSettings.udpTurn;
 
-				console.log("running UDP-UDP test...");
+				parentDom.slideDown();
+
 				new DoctoRTCWeb.NetworkTestWidget(parentDom, turn, options, ondone);
 				break;
 
 			case 'tcp2tcp':
-				parentDom = this.dom.find('.test.network.tcp2tcp');
+				parentDom = this.dom.networkTestTcp2Tcp;
 				turn = this.networkTestsSettings.tcpTurn;
 
-				console.log("running TCP-TCP test...");
+				parentDom.slideDown();
+
 				new DoctoRTCWeb.NetworkTestWidget(parentDom, turn, options, ondone);
 				break;
 		}

@@ -46,7 +46,7 @@ body#doctortcweb {
 	@include filter-gradient(#01a38d, #082a42, vertical); // IE6-9
 	@include background-image(linear-gradient(top, #01a38d 0%,#0b617f 25%,#103769 50%,#0c3056 75%,#082a42 100%));
 
-	// Reset custom styles built-in browsers.
+	 // Reset custom styles built-in browsers.
 	@import "reset";
 
 
@@ -70,16 +70,16 @@ body#doctortcweb {
 
 	// Title.
 	> h1.title {
+		margin: 0;
 		color: #FFF;
 		font-family: source-sans-pro, helvetica, arial, sans-serif;
 		font-weight: lighter;
-		font-size: 300%;
-		line-height: 2.5em;
+		font-size: 3em;
+		line-height: 2.2em;
 		text-align: center;
 		text-transform: uppercase;
-		// background-color: rgba(#000, 0.1);
 		background-image: url('/src/images/title-bg.png');
-		margin-bottom: 50px;
+		margin-bottom: 40px;
 		@include text-shadow(0px 0px 15px 0px rgba(white,0.75));
 	}  // div.title
 
@@ -87,7 +87,7 @@ body#doctortcweb {
 	// Container.
 	> div.container {
 		width: 100%;
-		margin-bottom: $footerHeight + 50;
+		margin-bottom: $footerHeight + 40;
 		@include display-flex();
 		@include justify-content(center);
 
@@ -96,7 +96,7 @@ body#doctortcweb {
 			width: 50%;
 			min-width: 800px;
 			padding: 40px;
-			background: rgba(#FFFFFF, 0.9);
+			background-color: #FFF;
 			@include border-radius(10px);
 			@include box-shadow(0px 5px 15px 0px rgba(#000,0.5));
 			overflow: visible;
@@ -111,8 +111,74 @@ body#doctortcweb {
 				> h2 {
 					color: #666;
 					margin-bottom: 0.5em;
+
+					// Remove magin-top in first element.
+					&:first-child { margin-top: 0 }
 				}
 			}
+
+			// NetworkTestWidget
+			div.NetworkTestWidget {
+				> div.status {
+					margin-bottom: 20px;
+
+					div.progressbar {
+						height: 20px;
+					}
+
+					.ui-progressbar {
+						background: #EFEFEF !important;
+					}
+				}
+
+				> div.statistics {
+					@include display-flex();
+					@include justify-content(center);
+
+					> .table {
+						display: table;
+						width: 75%;
+						height: 100%;
+						border-collapse: collapse;
+
+						> .row {
+							display: table-row;
+							line-height: 1.5em;
+
+							&.header {
+								font-weight: bold;
+								color: #FFF;
+								background-color: #0d4872;
+
+								> .cell {
+									border: none !important;
+									text-align: center !important;
+								}
+							}
+
+							> .cell {
+								display: table-cell;
+								padding: 1px 10px;
+								border: 1px solid #EEE;
+
+								&.key {
+									width: 40%;
+								}
+
+								&.value {
+									width: 30%;
+									text-align: right;
+								}
+
+								&.recommended {
+									width: 30%;
+									text-align: right;
+								}
+							}
+						}
+					}
+				}
+			}  // div.NetworkTestWidget
 		}  // div.content
 	}  // div.container
 
@@ -125,12 +191,9 @@ body#doctortcweb {
 		width: 100%;
 		@include box-sizing(border-box);
 		padding: 10px 100px 20px 100px;
-		// background-color: rgba(#FFF, 0.9);
-
 		background-color: #ffffff; // Old browsers
 		@include filter-gradient(#ffffff, #ffffff, vertical); // IE6-9
 		@include background-image(linear-gradient(top, #ffffff 0%,#f3f3f3 38%,#ededed 39%,#ffffff 100%));
-
 		@include box-shadow(0px 0px 15px 0px rgba(#000,0.75));
 		overflow: visible;
 		color: #555;
@@ -141,7 +204,13 @@ body#doctortcweb {
 		> div.ef2f {
 			@include align-self(center);
 			text-align: center;
+
+			p {
+				margin: 0;
+			}
+
 			a {
+				margin-top: 0;
 				display: block;
 				background: center url('/src/images/eFace2Face-logo.png') no-repeat;
 				height: 24px;

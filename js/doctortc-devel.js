@@ -620,8 +620,8 @@ var DoctoRTC = (function() {
 		// Number of packets sent.
 		statistics.packetsSent = this.numPackets;
 
-		// Number of packets received out of order.
-		statistics.outOfOrder = this.outOfOrderReceivedPackets;
+		// Percentage of packets received out of order.
+		statistics.outOfOrder = (this.outOfOrderReceivedPackets / statistics.packetsSent).toFixed(5) * 100;
 
 		// Packet loss and average elapsed time.
 		var packetLoss = 0;
@@ -637,8 +637,8 @@ var DoctoRTC = (function() {
 				sumElapsedTimes += ( packetInfo.recvTime - packetInfo.sentTime );
 			}
 		}
-		statistics.packetLoss = packetLoss;
-		statistics.avgElapsedTime = sumElapsedTimes / ( this.packetsInfo.length - packetLoss );
+		statistics.packetLoss = (packetLoss / statistics.packetsSent).toFixed(5) * 100;
+		statistics.avgElapsedTime = (sumElapsedTimes / (this.packetsInfo.length - packetLoss)).toFixed(3);
 
 		// Fire the user's success callback.
 	 	this.callback(this.packetsInfo, statistics);
