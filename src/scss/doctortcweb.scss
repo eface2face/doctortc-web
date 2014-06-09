@@ -103,7 +103,7 @@ body#doctortcweb {
 			font-size: 90%;
 
 			> div.test {
-				margin-bottom: 2em;
+				margin-bottom: 3em;
 				// Remove margin-bottom in last element.
 				&:last-child { margin-bottom: 0 }
 				color: #888;
@@ -111,6 +111,7 @@ body#doctortcweb {
 				> h2 {
 					color: #666;
 					margin-bottom: 0.5em;
+					border-bottom: 1px solid #149188;
 
 					// Remove magin-top in first element.
 					&:first-child { margin-top: 0 }
