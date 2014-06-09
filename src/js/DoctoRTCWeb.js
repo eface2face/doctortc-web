@@ -14,8 +14,7 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
 
-		// this.networkTests = ["udp2udp", "tcp2tcp"];
-		this.networkTests = ["udp2udp"];
+		this.networkTests = ["udp2udp", "tcp2tcp"];
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',
