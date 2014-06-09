@@ -13,11 +13,18 @@
 		this.dom.status.description = this.dom.status.find('.description');
 		this.dom.status.progressbar = this.dom.status.find('.progressbar');
 		this.dom.statistics = this.dom.find('.statistics');
+
 		this.dom.statistics.packetsSentValue = this.dom.statistics.find('.packetsSent .value');
+		this.dom.statistics.packetSizeValue = this.dom.statistics.find('.packetSize .value');
+		this.dom.statistics.sendingIntervalValue = this.dom.statistics.find('.sendingInterval .value');
 		this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
 		this.dom.statistics.outOfOrderValue = this.dom.statistics.find('.outOfOrder .value');
 		this.dom.statistics.packetLossValue = this.dom.statistics.find('.packetLoss .value');
-		this.dom.statistics.avgElapsedTimeValue = this.dom.statistics.find('.avgElapsedTime .value');
+		this.dom.statistics.RTTValue = this.dom.statistics.find('.RTT .value');
+		this.dom.statistics.bandwidthValue = this.dom.statistics.find('.bandwidth .value');
+
+		this.dom.statistics.testDurationOptimal = this.dom.statistics.find('.testDuration .optimal');
+		this.dom.statistics.bandwidthOptimal = this.dom.statistics.find('.bandwidth .optimal');
 
 		// Hide stuff.
 		this.dom.status.description.hide();
@@ -52,8 +59,7 @@
 			},
 			// errback
 			function(error) {
-				self.setStatus('error');
-				// self.onError(error);
+				self.setStatus('error', error);
 
 				if (self.ondone) {
 					self.ondone();
@@ -67,7 +73,7 @@
 		delete this.options.onPacketReceived;
 	};
 
-	NetworkTestWidget.prototype.setStatus = function(status) {
+	NetworkTestWidget.prototype.setStatus = function(status, error) {
 		var self = this;
 
 		switch(status) {
@@ -85,7 +91,7 @@
 				break;
 
 			case 'success':
-				this.dom.status.description.text('test completed');
+				this.dom.status.description.text('test completed:');
 
 				// Hide progressbar.
 				window.setTimeout(function() {
@@ -95,7 +101,7 @@
 				break;
 
 			case 'error':
-				this.dom.status.description.text('test failed');
+				this.dom.status.description.text('test failed: ' + error);
 
 				// Hide progressbar.
 				window.setTimeout(function() {
@@ -110,17 +116,19 @@
 		this.dom.statistics.slideDown('fast');
 
 		this.dom.statistics.packetsSentValue.text(statistics.packetsSent);
+		this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
+		this.dom.statistics.sendingIntervalValue.text(statistics.sendingInterval + ' ms');
 		this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
 		this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder + ' %');
 		this.dom.statistics.packetLossValue.text(statistics.packetLoss + ' %');
-		this.dom.statistics.avgElapsedTimeValue.text(statistics.avgElapsedTime + ' ms');
+		this.dom.statistics.RTTValue.text(statistics.RTT + ' ms');
+		this.dom.statistics.bandwidthValue.text(statistics.bandwidth + ' kbit/s');
 
+		var optimalTestDuration = (statistics.packetsSent * statistics.sendingInterval / 1000).toFixed(3);
+		this.dom.statistics.testDurationOptimal.text(optimalTestDuration + ' s');
 
-
-		console.log("packetsInfo:");
-		console.log(packetsInfo);
-		console.log("statistics:");
-		console.log(statistics);
+		var optimalBandwidth = ((statistics.packetsSent * statistics.packetSize * 8 / 1000) / statistics.sendingInterval).toFixed(2);
+		this.dom.statistics.bandwidthOptimal.text(optimalBandwidth + ' kbit/s');
 	};
 
 	DoctoRTCWeb.NetworkTestWidget = NetworkTestWidget;

@@ -140,6 +140,9 @@ body#doctortcweb {
 						width: 75%;
 						height: 100%;
 						border-collapse: collapse;
+						@include box-shadow(0px 5px 15px 0px rgba(#000,0.5));
+						overflow: visible;
+						font-size: 0.9em;
 
 						> .row {
 							display: table-row;
@@ -149,6 +152,7 @@ body#doctortcweb {
 								font-weight: bold;
 								color: #FFF;
 								background-color: #0d4872;
+								border: 1px solid #0d4872;
 
 								> .cell {
 									border: none !important;
@@ -170,7 +174,7 @@ body#doctortcweb {
 									text-align: right;
 								}
 
-								&.recommended {
+								&.optimal {
 									width: 30%;
 									text-align: right;
 								}
