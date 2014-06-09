@@ -13,8 +13,8 @@
 		this.dom.status.description = this.dom.status.find('.description');
 		this.dom.status.progressbar = this.dom.status.find('.progressbar');
 		this.dom.statistics = this.dom.find('.statistics');
-		this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
 		this.dom.statistics.packetsSentValue = this.dom.statistics.find('.packetsSent .value');
+		this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
 		this.dom.statistics.outOfOrderValue = this.dom.statistics.find('.outOfOrder .value');
 		this.dom.statistics.packetLossValue = this.dom.statistics.find('.packetLoss .value');
 		this.dom.statistics.avgElapsedTimeValue = this.dom.statistics.find('.avgElapsedTime .value');
@@ -109,8 +109,8 @@
 	NetworkTestWidget.prototype.onSuccess = function(packetsInfo, statistics) {
 		this.dom.statistics.slideDown('fast');
 
-		this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
 		this.dom.statistics.packetsSentValue.text(statistics.packetsSent);
+		this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
 		this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder + ' %');
 		this.dom.statistics.packetLossValue.text(statistics.packetLoss + ' %');
 		this.dom.statistics.avgElapsedTimeValue.text(statistics.avgElapsedTime + ' ms');

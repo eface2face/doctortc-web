@@ -178,7 +178,9 @@ var DoctoRTC = (function() {
 		// Number of rounds in the test.
 		NUM_PACKETS: 100,
 		// The size of each test packet (bytes).
-		PACKET_SIZE: 500
+		PACKET_SIZE: 500,
+		// Number of pre-test packets to send before starting the real test.
+		NUM_PRE_TEST_PACKETS: 75
 	};
 	var SDP_CONSTRAINS = {
 		mandatory: {
@@ -231,7 +233,7 @@ var DoctoRTC = (function() {
 		// Packet to be sent during the test (first bytes will me modified while sending).
 		// NOTE: This is a typed Array of Uint16 elements, so divide its size by 2 in order
 		// to get this.packetSize bytes.
-		this.packet = new Uint16Array(this.packetSize / 2);
+		this.packet = new Int16Array(this.packetSize / 2);
 
 		// An array for holding information about every packet sent.
 		this.packetsInfo = new Array(this.numPackets);
@@ -418,8 +420,8 @@ var DoctoRTC = (function() {
 			// Cancel timer.
 			window.clearTimeout(this.connectTimer);
 
-			// Start the test.
-			this.startTest();
+			// Send the pre-test packets.
+			this.preTest();
 		}
 	};
 
@@ -433,8 +435,8 @@ var DoctoRTC = (function() {
 			// Cancel timer.
 			window.clearTimeout(this.connectTimer);
 
-			// Start the test.
-			this.startTest();
+			// Send the pre-test packets.
+			this.preTest();
 		}
 	};
 
@@ -448,6 +450,42 @@ var DoctoRTC = (function() {
 		// dc1 MUST NOT receive any messages from dc2.
 		DoctoRTC.error(CLASS, "onMessage1", "unexpected message received");
 		this.close(ERRORS.INTERNAL_ERROR);
+	};
+
+	NetworkTester.prototype.preTest = function() {
+		DoctoRTC.debug(CLASS, "preTest");
+
+		var self = this;
+		var numPacketsSent = 0;
+
+		// Send pre-test packets.
+		var preTestPeriodicTimer = window.setInterval(function() {
+			if (numPacketsSent === C.NUM_PRE_TEST_PACKETS) {
+				DoctoRTC.debug(CLASS, "preTest", "all the pre-test packets sent, starting the test");
+				window.clearInterval(preTestPeriodicTimer);
+				self.startTest();
+			}
+
+			numPacketsSent++;
+
+			// Don't attempt to send  a packet if the sending buffer has data yet.
+			if (self.dc1.bufferedAmount !== 0) {
+				DoctoRTC.debug(CLASS, "preTest", "sending buffer not empty, waiting");
+				return;
+			}
+
+			// Set -1 in the first byte of the message.
+			self.packet[0] = -1;
+
+			// If we receive an error while sending then ignore it.
+			try {
+				self.dc1.send(self.packet);
+				DoctoRTC.debug(CLASS, "preTest", "pre-test packet " + numPacketsSent + "sent");
+			} catch(error) {
+				DoctoRTC.error(CLASS, "preTest", "error sending pre-test packet: " + error.message);
+				return;
+			}
+		}, this.sendingInterval);
 	};
 
 	NetworkTester.prototype.startTest = function() {
@@ -525,12 +563,18 @@ var DoctoRTC = (function() {
 
 		// dc2 must receive packet messages from dc1.
 		if (event.data.byteLength === this.packetSize) {
-			var packet = new Uint16Array(event.data);
+			var packet = new Int16Array(event.data);
 			var receivedPacketId = packet[0];
+
+			// Ignore pre-test packets.
+			if (receivedPacketId === -1) {
+				DoctoRTC.debug(CLASS, "onMessage2", "ignoring pre-test received packet");
+				return;
+			}
 
 			DoctoRTC.debug(CLASS, "onMessage2", "received packet with id " + receivedPacketId);
 
-			// Ignore malformed packets which a identificator bigger than the Array size.
+			// Ignore malformed packets which an identificator bigger than the Array size.
 			if (receivedPacketId >= this.packetsInfo.length) {
 				DoctoRTC.error(CLASS, "onMessage2", "malformed packet with unknown id " + receivedPacketId);
 				this.close(C.INTERNAL_ERROR);
@@ -638,7 +682,7 @@ var DoctoRTC = (function() {
 			}
 		}
 		statistics.packetLoss = (packetLoss / statistics.packetsSent).toFixed(5) * 100;
-		statistics.avgElapsedTime = (sumElapsedTimes / (this.packetsInfo.length - packetLoss)).toFixed(3);
+		statistics.avgElapsedTime = (sumElapsedTimes / (statistics.packetsSent - packetLoss)).toFixed(3);
 
 		// Fire the user's success callback.
 	 	this.callback(this.packetsInfo, statistics);
