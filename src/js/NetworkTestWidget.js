@@ -124,11 +124,8 @@
 		this.dom.statistics.RTTValue.text(statistics.RTT + ' ms');
 		this.dom.statistics.bandwidthValue.text(statistics.bandwidth + ' kbit/s');
 
-		var optimalTestDuration = (statistics.packetsSent * statistics.sendingInterval / 1000).toFixed(3);
-		this.dom.statistics.testDurationOptimal.text(optimalTestDuration + ' s');
-
-		var optimalBandwidth = ((statistics.packetsSent * statistics.packetSize * 8 / 1000) / statistics.sendingInterval).toFixed(2);
-		this.dom.statistics.bandwidthOptimal.text(optimalBandwidth + ' kbit/s');
+		this.dom.statistics.testDurationOptimal.text(statistics.optimalTestDuration + ' s');
+		this.dom.statistics.bandwidthOptimal.text(statistics.optimalBandwidth + ' kbit/s');
 	};
 
 	DoctoRTCWeb.NetworkTestWidget = NetworkTestWidget;

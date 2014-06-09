@@ -14,7 +14,8 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
 
-		this.networkTests = ["udp2udp", "tcp2tcp"];
+		// this.networkTests = ["udp2udp", "tcp2tcp"];
+		this.networkTests = ["udp2udp"];
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',
@@ -27,16 +28,10 @@ var DoctoRTCWeb = (function() {
 				credential: 'ef2f'
 			},
 			options: {
-				// Send 2 mbps.
-				// packetSize: 5000,
-				// numPackets: 100,
-				// numPreTestPackets: 30,
-				// sendingInterval: 20,
-				packetSize: 500,
-				numPackets: 1000,
-				numPreTestPackets: 30,
-				sendingInterval: 2,
-
+				packetSize: 2500,
+				numPackets: 500,
+				numPreTestPackets: 75,
+				sendingInterval: 20,
 				connectTimeout: 6000,
 				testTimeout: 30000
 			}
