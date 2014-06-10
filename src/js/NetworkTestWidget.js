@@ -26,10 +26,25 @@
 		this.dom.statistics.testDurationOptimal = this.dom.statistics.find('.testDuration .optimal');
 		this.dom.statistics.bandwidthOptimal = this.dom.statistics.find('.bandwidth .optimal');
 
+		this.dom.showChartsButton = this.dom.find('.showCharts');
+		this.dom.charts = this.dom.find('.chart');
+		this.dom.chartRTT = this.dom.find('.chart.RTT');
+		this.dom.chartRTT.flot = this.dom.chartRTT.find('.flot');
+
 		// Hide stuff.
 		this.dom.status.description.hide();
 		this.dom.status.progressbar.hide();
 		this.dom.statistics.hide();
+		this.dom.showChartsButton.hide();
+		this.dom.charts.hide();
+
+		// Set events.
+		var self = this;
+		this.dom.showChartsButton.click(function() {
+			self.dom.charts.slideDown();
+			$(this).slideUp();
+			return false;
+		});
 
 		this.run();
 	};
@@ -86,7 +101,7 @@
 				this.dom.status.progressbar.progressbar({
 					value: false
 				});
-				this.dom.status.progressbar.slideDown();
+				this.dom.status.progressbar.slideDown('slow');
 
 				break;
 
@@ -95,8 +110,8 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'normal');
-				}, 100);
+					self.dom.status.progressbar.animate({ height: '0px', opacity: 0 }, 'slow');
+				}, 500);
 
 				break;
 
@@ -105,15 +120,15 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: 'toggle', opacity: 'toggle' }, 'normal');
-				}, 100);
+					self.dom.status.progressbar.animate({ height: '0px', opacity: 0 }, 'slow');
+				}, 500);
 
 				break;
 		}
 	};
 
 	NetworkTestWidget.prototype.onSuccess = function(packetsInfo, statistics) {
-		this.dom.statistics.slideDown('fast');
+		// Show statistics.
 
 		this.dom.statistics.packetsSentValue.text(statistics.packetsSent);
 		this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
@@ -126,6 +141,31 @@
 
 		this.dom.statistics.testDurationOptimal.text(statistics.optimalTestDuration + ' s');
 		this.dom.statistics.bandwidthOptimal.text(statistics.optimalBandwidth + ' kbit/s');
+
+		this.dom.statistics.slideDown('normal');
+
+
+		// Show charts.
+
+		var packetInfo;
+		var data = [];
+		var options = {
+		    series: {
+		        lines: { show: false },
+		        points: { show: true }
+		    }
+		};
+
+		for(var i=0; i < statistics.packetsSent; i++) {
+			packetInfo = packetsInfo[i];
+			data[i] = [packetInfo.sentTime, packetInfo.elapsedTime];
+		}
+
+		// Must show the flot (and then hide) so Flot can calculate its real width/height.
+		this.dom.chartRTT.show();
+		this.dom.chartRTT.flot.plot([data], options);
+		this.dom.chartRTT.hide();
+		this.dom.showChartsButton.slideDown();
 	};
 
 	DoctoRTCWeb.NetworkTestWidget = NetworkTestWidget;

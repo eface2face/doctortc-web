@@ -29,7 +29,7 @@ var DoctoRTCWeb = (function() {
 			options: {
 				packetSize: 2500,
 				numPackets: 200,
-				numPreTestPackets: 75,
+				numPreTestPackets: 150,
 				sendingInterval: 20,
 				connectTimeout: 6000,
 				testTimeout: 30000
