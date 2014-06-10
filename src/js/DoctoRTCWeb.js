@@ -68,7 +68,7 @@ var DoctoRTCWeb = (function() {
 			return true;
 		}
 		else {
-			this.dom.hasWebRTC.result.text('your browser has not WebRTC support');
+			this.dom.hasWebRTC.result.text('your browser does not support WebRTC');
 			this.dom.hasWebRTC.result.slideDown();
 			return false;
 		}
