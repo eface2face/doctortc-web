@@ -121,10 +121,10 @@ body#doctortcweb {
 			// NetworkTestWidget
 			div.NetworkTestWidget {
 				> div.status {
-					margin-bottom: 20px;
 
 					div.progressbar {
 						height: 22px;
+						margin-bottom: 20px;
 					}
 
 					.ui-progressbar {
@@ -188,10 +188,10 @@ body#doctortcweb {
 					display: block;
 					margin-top: 20px;
 					text-align: center;
-					color: #149188;
+					color: #e75713;
 
 					&:hover {
-						color: red;
+						//color: #e7a713;
 						text-decoration: underline;
 					}
 				}
@@ -199,7 +199,6 @@ body#doctortcweb {
 				> div.chart {
 					@include display-flex();
 					@include justify-content(center);
-					margin-top: 10px;
 
 					> div.content {
 						width: 75%;

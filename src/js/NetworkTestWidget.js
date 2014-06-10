@@ -110,7 +110,7 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: '0px', opacity: 0 }, 'slow');
+					self.dom.status.progressbar.slideUp();
 				}, 500);
 
 				break;
@@ -120,7 +120,7 @@
 
 				// Hide progressbar.
 				window.setTimeout(function() {
-					self.dom.status.progressbar.animate({ height: '0px', opacity: 0 }, 'slow');
+					self.dom.status.progressbar.slideUp();
 				}, 500);
 
 				break;
