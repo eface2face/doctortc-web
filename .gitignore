@@ -3,6 +3,5 @@ dist/
 .sass-cache/
 src/html/min/
 src/css/
-js/doctortc-devel.js
 .DS_Store
 upload.sh
