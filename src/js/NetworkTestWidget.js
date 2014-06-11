@@ -150,6 +150,7 @@
 			series: {
 			},
 			grid: {
+				borderWidth: 1,
 				markings: [
 					{
 						x1axis: { from: 0, to: statistics.ignoredInterval },
@@ -163,7 +164,7 @@
 					min: 0,
 					show: true,
 					tickFormatter: function(v, axis) {
-						return v + " ms";
+						return (v / 1000) + " s";
 					}
 				}
 			],
