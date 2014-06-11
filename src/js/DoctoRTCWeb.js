@@ -31,8 +31,8 @@ var DoctoRTCWeb = (function() {
 				numPackets: 800,
 				ignoredInterval: 2500,
 				sendingInterval: 10,
-				connectTimeout: 6000,
-				testTimeout: 35000
+				connectTimeout: 5000,
+				testTimeout: 40000
 			}
 		};
 

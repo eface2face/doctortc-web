@@ -204,7 +204,9 @@
 		};
 
 		var dataRTT = [];
-		for(var i=0; i < statistics.numPackets; i++) {
+		// Total number of packets (not just the not ignored).
+		var numPackets = packetsInfo.length;
+		for(var i=0; i < numPackets; i++) {
 			dataRTT[i] = [packetsInfo[i].sentTime, packetsInfo[i].elapsedTime];
 		}
 
@@ -250,7 +252,7 @@
 		this.dom.chart.hide();
 
 
-		// Show "charts" button.
+		// Show "chart" button.
 		this.dom.showChartButton.slideDown();
 	};
 
