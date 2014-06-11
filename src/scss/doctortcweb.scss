@@ -184,7 +184,7 @@ body#doctortcweb {
 					}
 				}  // div.statistics
 
-				> a.showCharts {
+				> a.showChart {
 					display: block;
 					margin-top: 20px;
 					text-align: center;
@@ -199,6 +199,7 @@ body#doctortcweb {
 				> div.chart {
 					@include display-flex();
 					@include justify-content(center);
+					margin-top: 20px;
 
 					> div.content {
 						width: 75%;

@@ -14,7 +14,7 @@
 		this.dom.status.progressbar = this.dom.status.find('.progressbar');
 		this.dom.statistics = this.dom.find('.statistics');
 
-		this.dom.statistics.packetsSentValue = this.dom.statistics.find('.packetsSent .value');
+		this.dom.statistics.numPacketsValue = this.dom.statistics.find('.numPackets .value');
 		this.dom.statistics.packetSizeValue = this.dom.statistics.find('.packetSize .value');
 		this.dom.statistics.sendingIntervalValue = this.dom.statistics.find('.sendingInterval .value');
 		this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
@@ -26,22 +26,21 @@
 		this.dom.statistics.testDurationOptimal = this.dom.statistics.find('.testDuration .optimal');
 		this.dom.statistics.bandwidthOptimal = this.dom.statistics.find('.bandwidth .optimal');
 
-		this.dom.showChartsButton = this.dom.find('.showCharts');
-		this.dom.charts = this.dom.find('.chart');
-		this.dom.chartRTT = this.dom.find('.chart.RTT');
-		this.dom.chartRTT.flot = this.dom.chartRTT.find('.flot');
+		this.dom.showChartButton = this.dom.find('.showChart');
+		this.dom.chart = this.dom.find('.chart');
+		this.dom.chart.flot = this.dom.chart.find('.flot');
 
 		// Hide stuff.
 		this.dom.status.description.hide();
 		this.dom.status.progressbar.hide();
 		this.dom.statistics.hide();
-		this.dom.showChartsButton.hide();
-		this.dom.charts.hide();
+		this.dom.showChartButton.hide();
+		this.dom.chart.hide();
 
 		// Set events.
 		var self = this;
-		this.dom.showChartsButton.click(function() {
-			self.dom.charts.slideDown();
+		this.dom.showChartButton.click(function() {
+			self.dom.chart.slideDown();
 			$(this).slideUp();
 			return false;
 		});
@@ -64,9 +63,9 @@
 			// turnServer
 			this.turn,
 			// callback
-			function(packetsInfo, statistics) {
+			function(statistics, packetsInfo, pendingOngoingData) {
 				self.setStatus('success');
-				self.onSuccess(packetsInfo, statistics);
+				self.onSuccess(statistics, packetsInfo, pendingOngoingData);
 
 				if (self.ondone) {
 					self.ondone();
@@ -127,10 +126,10 @@
 		}
 	};
 
-	NetworkTestWidget.prototype.onSuccess = function(packetsInfo, statistics) {
+	NetworkTestWidget.prototype.onSuccess = function(statistics, packetsInfo, pendingOngoingData) {
 		// Show statistics.
 
-		this.dom.statistics.packetsSentValue.text(statistics.packetsSent);
+		this.dom.statistics.numPacketsValue.text(statistics.numPackets);
 		this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
 		this.dom.statistics.sendingIntervalValue.text(statistics.sendingInterval + ' ms');
 		this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
@@ -145,27 +144,114 @@
 		this.dom.statistics.slideDown('normal');
 
 
-		// Show charts.
+		// Show RTT chart.
 
-		var packetInfo;
-		var data = [];
-		var options = {
-		    series: {
-		        lines: { show: false },
-		        points: { show: true }
-		    }
+		var plotOptions = {
+			series: {
+			},
+			grid: {
+				markings: [
+					{
+						x1axis: { from: 0, to: statistics.ignoredInterval },
+						color: "#DDD"
+					}
+				]
+			},
+			xaxes: [
+				// X axis 1 (shared)
+				{
+					min: 0,
+					show: true,
+					tickFormatter: function(v, axis) {
+						return v + " ms";
+					}
+				}
+			],
+			yaxes: [
+				// Y axis 1 (fake data)
+				{
+					show: false
+				},
+				// Y axis 2 (pending ongoing data)
+				{
+					min: 0,
+					show: true,
+					position: "right",
+					font: {
+ 						color: "#14579a"
+					},
+					tickFormatter: function(v, axis) {
+						return (v / 1000).toFixed(0) + " kbytes";
+					}
+				},
+				// Y axis 3 (RTT)
+				{
+					min: 0,
+					show: true,
+					position: "left",
+					font: {
+						color: "#e75713"
+					},
+					tickFormatter: function(v, axis) {
+						return v + " ms";
+					}
+				},
+			],
+			legend: {
+				show: true,
+				backgroundOpacity: 0.9
+			}
 		};
 
-		for(var i=0; i < statistics.packetsSent; i++) {
-			packetInfo = packetsInfo[i];
-			data[i] = [packetInfo.sentTime, packetInfo.elapsedTime];
+		var dataRTT = [];
+		for(var i=0; i < statistics.numPackets; i++) {
+			dataRTT[i] = [packetsInfo[i].sentTime, packetsInfo[i].elapsedTime];
 		}
 
+		var RTTSerie = {
+			data: dataRTT,
+			xaxis: 1,
+			yaxis: 3,
+			label: "RTT per packet",
+			color: "#e75713",
+			points: {
+				show: true,
+				radius: 1
+			}
+		};
+
+		var pendingOngoingSerie = {
+			data: pendingOngoingData,
+			xaxis: 1,
+			yaxis: 2,
+			label: "Pending ongoing data",
+			color: "#69bbe8",
+			lines: {
+				show: true,
+				steps: false,
+				lineWidth: 0,
+				fill: true,
+				fillColor: { colors: [ { opacity: 0.7 }, { opacity: 0.2 } ] }
+			}
+		};
+
+		// Fake data serie just for showing a label for the "unused" X interval.
+		var fakeSerie = {
+			data: [],
+			xaxis: 1,
+			yaxis: 1,
+			label: "Ignored data",
+			color: "#AAA",
+		};
+
 		// Must show the flot (and then hide) so Flot can calculate its real width/height.
-		this.dom.chartRTT.show();
-		this.dom.chartRTT.flot.plot([data], options);
-		this.dom.chartRTT.hide();
-		this.dom.showChartsButton.slideDown();
+		this.dom.chart.show();
+		this.dom.chart.flot.plot([fakeSerie, pendingOngoingSerie, RTTSerie], plotOptions);
+		this.dom.chart.hide();
+
+
+		// Show "charts" button.
+		this.dom.showChartButton.slideDown();
 	};
 
 	DoctoRTCWeb.NetworkTestWidget = NetworkTestWidget;

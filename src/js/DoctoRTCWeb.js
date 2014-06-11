@@ -27,12 +27,12 @@ var DoctoRTCWeb = (function() {
 				credential: 'ef2f'
 			},
 			options: {
-				packetSize: 2500,
-				numPackets: 200,
-				numPreTestPackets: 150,
-				sendingInterval: 20,
+				packetSize: 1250,
+				numPackets: 800,
+				ignoredInterval: 2500,
+				sendingInterval: 10,
 				connectTimeout: 6000,
-				testTimeout: 30000
+				testTimeout: 35000
 			}
 		};
 
@@ -42,10 +42,6 @@ var DoctoRTCWeb = (function() {
 		this.dom.hasWebRTC.result.hide();
 		this.dom.networkTestUdp2Udp.hide();
 		this.dom.networkTestTcp2Tcp.hide();
-	};
-
-	DoctoRTCWeb.prototype.setEvents = function() {
-
 	};
 
 	DoctoRTCWeb.prototype.run = function() {
