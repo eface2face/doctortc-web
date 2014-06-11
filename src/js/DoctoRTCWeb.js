@@ -28,8 +28,8 @@ var DoctoRTCWeb = (function() {
 			},
 			options: {
 				packetSize: 1250,
-				numPackets: 400,
-				ignoredInterval: 1500,
+				numPackets: 800,
+				ignoredInterval: 2500,
 				sendingInterval: 10,
 				connectTimeout: 5000,
 				testTimeout: 40000
