@@ -15,6 +15,7 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
 
 		this.networkTests = ["udp2udp", "tcp2tcp"];
+
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',
@@ -52,6 +53,8 @@ var DoctoRTCWeb = (function() {
 			return;
 		}
 
+		this.onTestsStart();
+
 		window.setTimeout(function() {
 			self.testNetwork();
 		}, C.INTER_TESTS_DELAY);
@@ -76,6 +79,7 @@ var DoctoRTCWeb = (function() {
 
 		// Exit if all the tests are done.
 		if (! test) {
+			this.onTestsEnd();
 			return;
 		}
 
@@ -110,6 +114,18 @@ var DoctoRTCWeb = (function() {
 				new DoctoRTCWeb.NetworkTestWidget(parentDom, turn, options, ondone);
 				break;
 		}
+	};
+
+	DoctoRTCWeb.prototype.onTestsStart = function() {
+		// Avoid tab looses focus.
+		window.onblur = function() {
+			alert("TEST INVALIDATED\n\nPlease, keep the focus on this tab during the test. Otherwise the results are not reliable.");
+			window.location.reload();
+		};
+	};
+
+	DoctoRTCWeb.prototype.onTestsEnd = function() {
+		window.onblur = null;
 	};
 
 	return DoctoRTCWeb;
