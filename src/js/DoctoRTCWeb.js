@@ -119,6 +119,9 @@ var DoctoRTCWeb = (function() {
 	DoctoRTCWeb.prototype.onTestsStart = function() {
 		// Avoid tab looses focus.
 		window.onblur = function() {
+			// Remove it now to avid loop.
+			window.onblur = null;
+
 			alert("TEST INVALIDATED\n\nPlease, keep the focus on this tab during the test. Otherwise the results are not reliable.");
 			window.location.reload();
 		};
