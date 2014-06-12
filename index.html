@@ -22,7 +22,10 @@
 
 	<script type='text/javascript'>
 		$(document).ready(function() {
+			// Create an unique instance of DoctoRTCWeb.
 			window.doctoRTCWeb = new DoctoRTCWeb();
+
+			// Wait 500 ms and automatically run the tests.
 			window.setTimeout(function() {
 				window.doctoRTCWeb.run();
 			}, 500);
@@ -67,6 +70,7 @@
 		</div>
 	</div>
 
+	<!-- The instance of DoctoRTCWeb will insert here the SettingsWidget.html -->
 </body>
 
 
