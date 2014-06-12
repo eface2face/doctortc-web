@@ -21,6 +21,49 @@ html {
 	position: relative;
 	min-height: 100%;
 }
+// add a few helper classes
+.pull-left{
+	float:left;
+}
+.pull-right{
+	float:right;
+}
+.mRight5{
+	margin-right:5px;
+}
+.mRight10{
+	margin-right:10px;
+}
+.mLeft10{
+	margin-left:10px;
+}
+.mRight100{
+	margin-right:100px;
+}
+.mLeft100{
+	margin-left:100px;
+}
+.mBottom10{
+	margin-bottom:10px;
+}
+.mTop10{
+	margin-top:10px;
+}
+.clear{
+	clear:both;
+}
+.w100pct{
+	width:100%;
+}
+.pointer{
+	cursor:pointer;
+}
+.inlineBlock{
+	display:inline-block;
+}
+.hide{
+	display:none;
+}
 
 body#doctortcweb {
 	padding: 0;
@@ -48,17 +91,23 @@ body#doctortcweb {
 	// Header.
 	> div.header {
 		position: relative;
-
+		color: #FFF;
 		> div.logo {
 			position: relative;
 			top: 0;
-			left: 100px;
 			width: 200px;
-			color: #FFF;
 			font-weight: bold;
 			font-size: 200%;
 			line-height: 2.5em;
 			@include text-shadow(0px 0px 10px 0px rgba(white,0.4));
+		}
+		> h2.pointer{
+			> i.settingsIcon{
+				width:23px;
+				height:23px;
+				background:url('/src/images/settings.svg') 0 0 no-repeat;
+				background-size:cover;
+			}
 		}
 	}  // div.header
 
