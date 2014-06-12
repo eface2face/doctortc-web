@@ -36,11 +36,6 @@ body#doctortcweb {
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 
-	// Wine color.
-	// background-color: #a90329; // Old browsers
-	// @include filter-gradient(#a90329, #6d0019, vertical); // IE6-9
-	// @include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%));
-
 	// eFace2Face colors.
 	background-color: #01a38d; // Old browsers
 	@include filter-gradient(#01a38d, #082a42, vertical); // IE6-9

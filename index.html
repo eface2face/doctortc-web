@@ -22,9 +22,9 @@
 
 	<script type='text/javascript'>
 		$(document).ready(function() {
-			var doctoRTCWeb = new DoctoRTCWeb();
+			window.doctoRTCWeb = new DoctoRTCWeb();
 			window.setTimeout(function() {
-				doctoRTCWeb.run();
+				window.doctoRTCWeb.run();
 			}, 500);
 		});
 	</script>
@@ -49,10 +49,12 @@
 
 			<div class='test network udp2udp'>
 				<h2>UDP connectivity test</h2>
+				<div class='result'></div>
 			</div>
 
 			<div class='test network tcp2tcp'>
 				<h2>TCP connectivity test</h2>
+				<div class='result'></div>
 			</div>
 
 		</div>

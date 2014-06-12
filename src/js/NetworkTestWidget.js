@@ -1,10 +1,11 @@
 (function(DoctoRTCWeb) {
 	var NetworkTestWidget;
 
-	NetworkTestWidget = function(parentDom, turn, options, ondone) {
-		parentDom.append(DoctoRTCWeb.Html.NetworkTestWidget);
+	NetworkTestWidget = function(resultDom, turn, options, ondone) {
+		resultDom.empty();
+		resultDom.append(DoctoRTCWeb.Html.NetworkTestWidget);
 
-		this.dom = parentDom.find('.NetworkTestWidget');
+		this.dom = resultDom.find('.NetworkTestWidget');
 		this.turn = turn;
 		this.options = options;
 		this.ondone = ondone;
@@ -45,6 +46,7 @@
 			return false;
 		});
 
+		this.test = null;
 		this.run();
 	};
 
@@ -59,7 +61,7 @@
 			self.dom.status.progressbar.progressbar('option', 'value', value);
 		};
 
-		DoctoRTC.testNetwork(
+		this.test = DoctoRTC.testNetwork(
 			// turnServer
 			this.turn,
 			// callback
@@ -85,6 +87,10 @@
 
 		// Remove the 'onPacketReceived' field of 'option'.
 		delete this.options.onPacketReceived;
+	};
+
+	NetworkTestWidget.prototype.cancel = function() {
+		this.test.cancel();
 	};
 
 	NetworkTestWidget.prototype.setStatus = function(status, error) {

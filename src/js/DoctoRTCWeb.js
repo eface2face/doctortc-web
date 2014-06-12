@@ -8,13 +8,15 @@ var DoctoRTCWeb = (function() {
 	};
 
 	DoctoRTCWeb = function() {
+		this.running = false;
+
 		this.dom = $('#doctortcweb');
 		this.dom.hasWebRTC = this.dom.find('.hasWebRTC');
 		this.dom.hasWebRTC.result = this.dom.hasWebRTC.find('.result');
 		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
-
-		this.networkTests = ["udp2udp", "tcp2tcp"];
+		this.dom.networkTestUdp2Udp.result = this.dom.networkTestUdp2Udp.find('.result');
+		this.dom.networkTestTcp2Tcp.result = this.dom.networkTestTcp2Tcp.find('.result');
 
 		this.networkTestsSettings = {
 			udpTurn: {
@@ -39,17 +41,22 @@ var DoctoRTCWeb = (function() {
 
 		// DoctoRTC.setVerbose(true);  // TMP
 
-		// Hide at start.
-		this.dom.hasWebRTC.result.hide();
-		this.dom.networkTestUdp2Udp.hide();
-		this.dom.networkTestTcp2Tcp.hide();
+		this.reset();
 	};
 
 	DoctoRTCWeb.prototype.run = function() {
+		if (this.running) {
+			throw("already running");
+		}
+		this.running = true;
+
+		this.reset();
+
 		var self = this;
 		var hasWebRTC = this.checkWebRTCSupport();
 
 		if (! hasWebRTC) {
+			this.running = false;
 			return;
 		}
 
@@ -58,6 +65,29 @@ var DoctoRTCWeb = (function() {
 		window.setTimeout(function() {
 			self.testNetwork();
 		}, C.INTER_TESTS_DELAY);
+	};
+
+	DoctoRTCWeb.prototype.stop = function() {
+		if (! this.running) {
+			return;
+		}
+
+		this.running = false;
+		if (this.currentNetworkTestWidget) {
+			this.currentNetworkTestWidget.cancel();
+		}
+	};
+
+	DoctoRTCWeb.prototype.reset = function() {
+		this.networkTests = ["udp2udp", "tcp2tcp"];
+
+		// Hold the current network test (so it can be cancelled).
+		this.currentNetworkTestWidget = null;
+
+		// Hide at start.
+		this.dom.hasWebRTC.result.hide();
+		this.dom.networkTestUdp2Udp.hide();
+		this.dom.networkTestTcp2Tcp.hide();
 	};
 
 	DoctoRTCWeb.prototype.checkWebRTCSupport = function() {
@@ -77,13 +107,20 @@ var DoctoRTCWeb = (function() {
 		var self = this;
 		var test = this.networkTests.shift();
 
-		// Exit if all the tests are done.
-		if (! test) {
+		// Exit if cancelled.
+		if (! this.running) {
 			this.onTestsEnd();
 			return;
 		}
 
-		var parentDom = null;
+		// Exit if all the tests are done.
+		if (! test) {
+			this.running = false;
+			this.onTestsEnd();
+			return;
+		}
+
+		var resultDom = null;
 		var turn = null;
 		var options = this.networkTestsSettings.options;
 		var ondone = function() {
@@ -97,37 +134,40 @@ var DoctoRTCWeb = (function() {
 
 		switch(test) {
 			case 'udp2udp':
-				parentDom = this.dom.networkTestUdp2Udp;
+				this.dom.networkTestUdp2Udp.slideDown();
+				resultDom = this.dom.networkTestUdp2Udp.result;
 				turn = this.networkTestsSettings.udpTurn;
 
-				parentDom.slideDown();
+				resultDom.slideDown();
 
-				new DoctoRTCWeb.NetworkTestWidget(parentDom, turn, options, ondone);
+				this.currentNetworkTestWidget = new DoctoRTCWeb.NetworkTestWidget(resultDom, turn, options, ondone);
 				break;
 
 			case 'tcp2tcp':
-				parentDom = this.dom.networkTestTcp2Tcp;
+				this.dom.networkTestTcp2Tcp.slideDown();
+				resultDom = this.dom.networkTestTcp2Tcp.result;
 				turn = this.networkTestsSettings.tcpTurn;
 
-				parentDom.slideDown();
+				resultDom.slideDown();
 
-				new DoctoRTCWeb.NetworkTestWidget(parentDom, turn, options, ondone);
+				this.currentNetworkTestWidget = new DoctoRTCWeb.NetworkTestWidget(resultDom, turn, options, ondone);
 				break;
 		}
 	};
 
 	DoctoRTCWeb.prototype.onTestsStart = function() {
 		// Avoid tab looses focus.
-		window.onblur = function() {
-			// Remove it now to avid loop.
-			window.onblur = null;
+		// window.onblur = function() {
+		// 	// Remove it now to avid loop.
+		// 	window.onblur = null;
 
-			alert("TEST INVALIDATED\n\nPlease, keep the focus on this tab during the test. Otherwise the results are not reliable.");
-			window.location.reload();
-		};
+		// 	alert("TEST INVALIDATED\n\nPlease, keep the focus on this tab during the test. Otherwise the results are not reliable.");
+		// 	window.location.reload();
+		// };
 	};
 
 	DoctoRTCWeb.prototype.onTestsEnd = function() {
+		this.currentNetworkTestWidget = null;
 		window.onblur = null;
 	};
 
