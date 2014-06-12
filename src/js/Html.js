@@ -2,7 +2,8 @@
 	var Html;
 
 	Html = {
-		'NetworkTestWidget': <%= meta.getHtmlFor('NetworkTestWidget') %>
+		'NetworkTestWidget': <%= meta.getHtmlFor('NetworkTestWidget') %>,
+		'SettingsWidget': <%= meta.getHtmlFor('SettingsWidget') %>
 	};
 
 	DoctoRTCWeb.Html = Html;

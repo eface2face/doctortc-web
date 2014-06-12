@@ -18,6 +18,9 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestUdp2Udp.result = this.dom.networkTestUdp2Udp.find('.result');
 		this.dom.networkTestTcp2Tcp.result = this.dom.networkTestTcp2Tcp.find('.result');
 
+		// Add the Settings widget.
+		this.settingsWidget = new DoctoRTCWeb.SettingsWidget(this.dom);
+
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',
