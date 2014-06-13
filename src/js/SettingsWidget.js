@@ -30,56 +30,65 @@
 		var _parentDom = this.parentDom;
 		var _dom = this.dom;
 		
+		var runTests = function() { 
+				var newOptions = {
+					packetSize: $("#packetSizeAmount").val(),
+					numPackets: $("#numberPacketsAmount").val(),
+					numPreTestPackets: $("#sendIntervalAmount").val(),
+					sendingInterval: $("#connectTimeoutAmount").val(),
+					connectTimeout: $("#testTimeoutAmount").val(),
+					testTimeout: $("#packetsBeforeTestAmount").val()
+				};
+				DoctoRTCWeb.networkTestsSettings.options = newOptions;
+				$(_dom).dialog( "close" ); 
+				DoctoRTCWeb.stop();
+				DoctoRTCWeb.reset();
+				DoctoRTCWeb.run();
+		};
+		
 		this.dom.dialog({	modal: true, 
 							autoOpen: false, 
 							width:"40%", 
-							buttons: [ { text: "Run tests", click: function() { 
-								var newOptions = {
-									packetSize: $("#packetSizeAmount").val(),
-									numPackets: $("#numberPacketsAmount").val(),
-									numPreTestPackets: $("#sendIntervalAmount").val(),
-									sendingInterval: $("#connectTimeoutAmount").val(),
-									connectTimeout: $("#testTimeoutAmount").val(),
-									testTimeout: $("#packetsBeforeTestAmount").val()
-								};
-								DoctoRTCWeb.networkTestsSettings.options = newOptions;
-								$(_dom).dialog( "close" ); 
-								DoctoRTCWeb.stop();
-								DoctoRTCWeb.reset();
-								DoctoRTCWeb.run();
-						} } ] });
+							buttons: [ { text: "Run tests", click: runTests } ] });
 								
 		var sliders = this.dom.settingsSlidersArray;
+		
+		var slideFunction = function( event, ui ) {
+			  //console.log("slide", slider.id, ui.value, $( "#"+slider.id+"Amount" ));
+			$(this)
+			.closest("li")
+			.find("input")
+			.val( ui.value );
+		  };
+		 
+		var amountChangeFunction = function(){
+			$(this)
+			.closest("li")
+			.find(".ui-slider")
+			.slider( "value", $(this).val() );
+		};
+
 		for(var x = 0; x< sliders.length; x++){
 			var slider = sliders[x];
 			//console.log("slider", slider, slider.id);
-			$( "#"+sliders[x].id+"Slider" ).slider({
+			this.dom.find( "#"+slider.id+"Slider" ).slider({
 			  range: false,
 			  min: sliders[x].min,
 			  max: sliders[x].max,
 			  value: sliders[x].default,
-			  slide: function( event, ui ) {
-				  //console.log("slide", slider.id, ui.value, $( "#"+slider.id+"Amount" ));
-				$(this)
-				.closest("li")
-				.find("input")
-				.val( ui.value );
-			  }
+			  slide: slideFunction
 			})
 			.parent()
-			.find("i.helpNote")
-			.prop("title", slider.tooltip);
-			//.tooltip();
+			.find(".helpNote")
+			.prop("title", slider.tooltip)
+			.text("i")
+			.tooltip();
 			
-			$( "#"+slider.id+"Amount" )
+			
+			this.dom.find( "#"+slider.id+"Amount" )
 			.val( $("#"+slider.id+"Slider" ).slider( "value" ))
 			.off("change")
-			.on("change", function(){
-				$(this)
-				.closest("li")
-				.find(".ui-slider")
-				.slider( "value", $(this).val() );
-			});
+			.on("change", amountChangeFunction);
 		}
 
 		// Add here this.dom.xxxxx attributes to hold jQuery elements for each UI field
