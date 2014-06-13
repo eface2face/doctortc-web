@@ -10,7 +10,7 @@
 		this.parentDom.append(DoctoRTCWeb.Html.SettingsWidget);
 
 		// this.dom is the jQuery object holding the Settings widget DOM.
-		this.dom = parentDom.find('#SettingsWidget');
+		this.dom = parentDom.find('.SettingsWidget');
 		this.dom.packetSizeSlider = this.dom.find("#packetSizeSlider");
 		this.dom.numberPacketsSlider = this.dom.find("#numberPacketsSlider");
 		this.dom.sendIntervalSlider = this.dom.find("#sendIntervalSlider");
@@ -36,15 +36,17 @@
 							buttons: [ { text: "Run tests", click: function() { 
 								var newOptions = {
 									packetSize: $("#packetSizeAmount").val(),
-									numPackets: $("#").val(),
-									numPreTestPackets: $("#").val(),
-									sendingInterval: $("#").val(),
-									connectTimeout: $("#").val(),
-									testTimeout: $("#").val()
+									numPackets: $("#numberPacketsAmount").val(),
+									numPreTestPackets: $("#sendIntervalAmount").val(),
+									sendingInterval: $("#connectTimeoutAmount").val(),
+									connectTimeout: $("#testTimeoutAmount").val(),
+									testTimeout: $("#packetsBeforeTestAmount").val()
 								};
-								_parentDom.networkTestsSettings.options = newOptions;
+								DoctoRTCWeb.networkTestsSettings.options = newOptions;
 								$(_dom).dialog( "close" ); 
-								_parentDom.run();
+								DoctoRTCWeb.stop();
+								DoctoRTCWeb.reset();
+								DoctoRTCWeb.run();
 						} } ] });
 								
 		var sliders = this.dom.settingsSlidersArray;
@@ -66,11 +68,18 @@
 			})
 			.parent()
 			.find("i.helpNote")
-			.prop("title", slider.tooltip)
+			.prop("title", slider.tooltip);
 			//.tooltip();
 			
-			$( "#"+sliders[x].id+"Amount" )
-			.val( $("#"+sliders[x].id+"Slider" ).slider( "value" ));
+			$( "#"+slider.id+"Amount" )
+			.val( $("#"+slider.id+"Slider" ).slider( "value" ))
+			.off("change")
+			.on("change", function(){
+				$(this)
+				.closest("li")
+				.find(".ui-slider")
+				.slider( "value", $(this).val() );
+			});
 		}
 
 		// Add here this.dom.xxxxx attributes to hold jQuery elements for each UI field
@@ -83,6 +92,7 @@
 		console.log("SettingsWidget.prototype.open", this.dom);
 		this.dom.dialog( "open" );
 	};
+	
 
 	SettingsWidget.prototype.close = function() {
 		// This method must make the Settings widget invisible (and make the rest of the web

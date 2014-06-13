@@ -1,9 +1,10 @@
 .ui-dialog{
-		> #settingsDialog{
+		> .SettingsWidget{
 			padding:10px;
 			
 			> ul{
 				list-style:none;
+				margin:0;
 				
 				> li{
 					width:100%;
@@ -29,6 +30,16 @@
 					>.ui-slider{
 						margin-top:10px;
 					}
+					
+					 > .ui-slider{
+						background:#9bb7e9; 
+						margin:5px 10px 0;
+						
+						> a{
+							top:-4px;
+							cursor:ew-resize;
+						}
+					 }
 				}
 			}
 		} // #settingsDialog

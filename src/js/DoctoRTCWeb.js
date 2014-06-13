@@ -30,7 +30,6 @@ var DoctoRTCWeb = (function() {
 		$(this.dom.settingsButton)
 		.on("click", function(){
 			console.log("Settings clicked");
-			//$(settingsDialog).dialog( "open" );
 			_settingsWidget.open();
 			return false;
 		});
