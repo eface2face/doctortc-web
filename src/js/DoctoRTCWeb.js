@@ -17,15 +17,15 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
 		this.dom.networkTestUdp2Udp.result = this.dom.networkTestUdp2Udp.find('.result');
 		this.dom.networkTestTcp2Tcp.result = this.dom.networkTestTcp2Tcp.find('.result');
-		
+
 		//add the link element
 		this.dom.settingsButton = this.dom.find('.settingsButton');
 
 		// Add the Settings widget.
 		this.settingsWidget = new DoctoRTCWeb.SettingsWidget(this.dom);
-		
+
 		var _settingsWidget = this.settingsWidget;
-		
+
 		//open settings functionality on click of settings button
 		$(this.dom.settingsButton)
 		.on("click", function(){
@@ -55,7 +55,7 @@ var DoctoRTCWeb = (function() {
 			}
 		};
 
-		// DoctoRTC.setVerbose(true);  // TMP
+		DoctoRTC.setVerbose(true);  // TMP
 
 		this.reset();
 	};
