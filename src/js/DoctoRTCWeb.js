@@ -15,24 +15,26 @@ var DoctoRTCWeb = (function() {
 		this.dom.hasWebRTC.result = this.dom.hasWebRTC.find('.result');
 		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
 		this.dom.networkTestTcp2Tcp = this.dom.find('.test.network.tcp2tcp');
+		this.dom.networkTestTls2Tls = this.dom.find('.test.network.tls2tls');
 		this.dom.networkTestUdp2Udp.result = this.dom.networkTestUdp2Udp.find('.result');
 		this.dom.networkTestTcp2Tcp.result = this.dom.networkTestTcp2Tcp.find('.result');
+		this.dom.networkTestTls2Tls.result = this.dom.networkTestTls2Tls.find('.result');
 
 		//add the link element
-		this.dom.settingsButton = this.dom.find('.settingsButton');
+		// this.dom.settingsButton = this.dom.find('.settingsButton');
 
 		// Add the Settings widget.
 		this.settingsWidget = new DoctoRTCWeb.SettingsWidget(this.dom);
 
-		var _settingsWidget = this.settingsWidget;
+		// var _settingsWidget = this.settingsWidget;
 
 		//open settings functionality on click of settings button
-		$(this.dom.settingsButton)
-		.on("click", function(){
-			console.log("Settings clicked");
-			_settingsWidget.open();
-			return false;
-		});
+		// this.dom.settingsButton
+		// .on("click", function(){
+		// 	console.log("Settings clicked");
+		// 	_settingsWidget.open();
+		// 	return false;
+		// });
 
 		this.networkTestsSettings = {
 			udpTurn: {
@@ -45,10 +47,15 @@ var DoctoRTCWeb = (function() {
 				username: 'turn',
 				credential: 'ef2f'
 			},
+			tlsTurn: {
+				url: 'turns:turn.ef2f.com:443?transport=tcp',
+				username: 'turn',
+				credential: 'ef2f'
+			},
 			options: {
 				packetSize: 1250,
-				numPackets: 800,
-				ignoredInterval: 2500,
+				numPackets: 80,  // 800
+				ignoredInterval: 250,  // 2500
 				sendingInterval: 10,
 				connectTimeout: 5000,
 				testTimeout: 40000
@@ -95,7 +102,7 @@ var DoctoRTCWeb = (function() {
 	};
 
 	DoctoRTCWeb.prototype.reset = function() {
-		this.networkTests = ["udp2udp", "tcp2tcp"];
+		this.networkTests = ["udp2udp", "tcp2tcp", "tls2tls"];
 
 		// Hold the current network test (so it can be cancelled).
 		this.currentNetworkTestWidget = null;
@@ -104,6 +111,7 @@ var DoctoRTCWeb = (function() {
 		this.dom.hasWebRTC.result.hide();
 		this.dom.networkTestUdp2Udp.hide();
 		this.dom.networkTestTcp2Tcp.hide();
+		this.dom.networkTestTls2Tls.hide();
 	};
 
 	DoctoRTCWeb.prototype.checkWebRTCSupport = function() {
@@ -163,6 +171,16 @@ var DoctoRTCWeb = (function() {
 				this.dom.networkTestTcp2Tcp.slideDown();
 				resultDom = this.dom.networkTestTcp2Tcp.result;
 				turn = this.networkTestsSettings.tcpTurn;
+
+				resultDom.slideDown();
+
+				this.currentNetworkTestWidget = new DoctoRTCWeb.NetworkTestWidget(resultDom, turn, options, ondone);
+				break;
+
+			case 'tls2tls':
+				this.dom.networkTestTls2Tls.slideDown();
+				resultDom = this.dom.networkTestTls2Tls.result;
+				turn = this.networkTestsSettings.tlsTurn;
 
 				resultDom.slideDown();
 
