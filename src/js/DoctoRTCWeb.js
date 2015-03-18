@@ -20,22 +20,6 @@ var DoctoRTCWeb = (function() {
 		this.dom.networkTestTcp2Tcp.result = this.dom.networkTestTcp2Tcp.find('.result');
 		this.dom.networkTestTls2Tls.result = this.dom.networkTestTls2Tls.find('.result');
 
-		//add the link element
-		// this.dom.settingsButton = this.dom.find('.settingsButton');
-
-		// Add the Settings widget.
-		this.settingsWidget = new DoctoRTCWeb.SettingsWidget(this.dom);
-
-		// var _settingsWidget = this.settingsWidget;
-
-		//open settings functionality on click of settings button
-		// this.dom.settingsButton
-		// .on("click", function(){
-		// 	console.log("Settings clicked");
-		// 	_settingsWidget.open();
-		// 	return false;
-		// });
-
 		this.networkTestsSettings = {
 			udpTurn: {
 				url: 'turn:turn.ef2f.com:3478?transport=udp',

@@ -28,7 +28,6 @@ module.exports = function(grunt) {
 	var jsFiles = [
 		'src/js/DoctoRTCWeb.js',
 		'src/js/Html.js',
-		'src/js/SettingsWidget.js',
 		'src/js/NetworkTestWidget.js'
 	];
 

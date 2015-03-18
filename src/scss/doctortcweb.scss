@@ -12,7 +12,8 @@
 @import "compass/css3/flexbox";
 
 
-$footerHeight: 70px;
+// Variables.
+@import "variables";
 
 
 html {
@@ -21,68 +22,24 @@ html {
 	position: relative;
 	min-height: 100%;
 }
-// add a few helper classes
-.pull-left{
-	float:left;
-}
-.pull-right{
-	float:right;
-}
-.mRight5{
-	margin-right:5px;
-}
-.mRight10{
-	margin-right:10px;
-}
-.mLeft10{
-	margin-left:10px;
-}
-.mRight100{
-	margin-right:100px;
-}
-.mLeft100{
-	margin-left:100px;
-}
-.mBottom10{
-	margin-bottom:10px;
-}
-.mTop10{
-	margin-top:10px;
-}
-.clear{
-	clear:both;
-}
-.w100pct{
-	width:100%;
-}
-.pointer{
-	cursor:pointer;
-}
-.inlineBlock{
-	display:inline-block;
-}
-.hide{
-	display:none;
-}
+
 
 body#doctortcweb {
 	padding: 0;
 	margin: 0;
 	width: 100%;
-	margin-bottom: $footerHeight;
-	font-family: "Varela Round", helvetica, arial, sans-serif;
+	font-family: MuseoSans, helvetica, arial, sans-serif;
 	font-size: 100%;
-	// -webkit-font-smoothing: antialiased;
-	text-rendering: optimizeLegibility;
-	-webkit-text-size-adjust: 100%;
-	-ms-text-size-adjust: 100%;
+	// text-rendering: optimizeLegibility;
+	// -webkit-text-size-adjust: 100%;
+	// -ms-text-size-adjust: 100%;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 
 	// eFace2Face colors.
-	background-color: #01a38d; // Old browsers
-	@include filter-gradient(#01a38d, #082a42, vertical); // IE6-9
-	@include background-image(linear-gradient(top, #01a38d 0%,#0b617f 25%,#103769 50%,#0c3056 75%,#082a42 100%));
+	background-color: #1db8e5; // Old browsers
+	@include filter-gradient(#1db8e5, #0180d9, vertical); // IE6-9
+	@include background-image(linear-gradient(top, #1db8e5 0%,#0180d9 100%));
 
 	 // Reset custom styles built-in browsers.
 	@import "reset";
@@ -90,55 +47,85 @@ body#doctortcweb {
 
 	// Header.
 	> div.header {
-		position: relative;
-		color: #FFF;
-		> div.logo {
-			position: relative;
-			top: 0;
-			width: 200px;
-			font-weight: bold;
-			font-size: 200%;
-			line-height: 2.5em;
-			@include text-shadow(0px 0px 10px 0px rgba(white,0.4));
-		}
-		> h2.pointer{
-			> i.settingsIcon{
-				width:23px;
-				height:23px;
-				background:url('/src/images/settings.svg') 0 0 no-repeat;
-				background-size:cover;
+		$height: 100px;
+
+		height: $height;
+		background-color: #fff;
+		@include box-shadow(0px 2px 5px 0px rgba(#666, 0.5));
+
+		> div.content {
+			height: 100%;
+			width: 75%;
+			min-width: $page-min-width;
+			margin: 0 auto;
+			background: center url('/src/images/eFace2Face-logo.png') no-repeat;
+
+			> a.home {
+				float: right;
+				line-height: $height * 1.1;
+				font-size: 1rem;
+				font-weight: bold;
+				color: #888;
+				@include transition-duration(0.5s);
+
+				&:hover {
+					@include transform(rotateY(360deg));
+				}
+
+				> span.arrow {
+					margin-right: 5px;
+					color: $color-orange;
+				}
 			}
 		}
 	}  // div.header
 
 
-	// Title.
-	> h1.title {
-		margin: 0;
-		color: #FFF;
-		font-family: source-sans-pro, helvetica, arial, sans-serif;
-		font-weight: lighter;
-		font-size: 3em;
-		line-height: 2.2em;
-		text-align: center;
-		text-transform: uppercase;
-		background-image: url('/src/images/title-bg.png');
-		margin-bottom: 40px;
-		@include text-shadow(0px 0px 15px 0px rgba(white,0.75));
-	}  // div.title
+	// Description.
+	> div.description {
+		margin: 60px auto;
+
+		> div.content {
+			width: 50%;
+			min-width: $page-min-width / 2;
+			margin: 0 auto;
+
+			> div.art {
+				height: 100px;
+				background: center url('/src/images/art.png') no-repeat;
+				@include background-size(contain);
+			}
+
+			> h2 {
+				margin-top: 40px;
+				margin-bottom: 10px;
+				font-weight: bold;
+				font-size: 2rem;
+				text-align: center;
+				color: #fff;
+			}
+
+			> p {
+				margin: 0;
+				font-size: 1rem;
+				text-align: center;
+				color: shade(#fff, 10%);
+			}
+		}
+	}
 
 
 	// Container.
 	> div.container {
+		margin-bottom: 100px;
 		width: 100%;
-		margin-bottom: $footerHeight + 40;
-		@include display-flex();
-		@include justify-content(center);
 
 		// Content.
 		> div.content {
-			width: 50%;
-			min-width: 800px;
+			@include box-sizing(border-box);
+			width: 75%;
+			min-width: $page-min-width;
+			margin: 0 auto;
 			padding: 40px;
 			background-color: #FFF;
 			@include border-radius(10px);
@@ -153,12 +140,15 @@ body#doctortcweb {
 				color: #888;
 
 				> h2 {
-					color: #666;
 					margin-bottom: 0.5em;
-					border-bottom: 1px solid #149188;
+					border-bottom: 1px solid $color-orange;
+					color: #666;
+					font-weight: bold;
 
 					// Remove magin-top in first element.
-					&:first-child { margin-top: 0 }
+					&:first-child {
+						margin-top: 0
+					}
 				}
 			}
 
@@ -166,47 +156,5 @@ body#doctortcweb {
 
 		}  // div.content
 	}  // div.container
-
-
-	> div.footer {
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		height: $footerHeight;
-		width: 100%;
-		@include box-sizing(border-box);
-		padding: 10px 100px 20px 100px;
-		background-color: #ffffff; // Old browsers
-		@include filter-gradient(#ffffff, #ffffff, vertical); // IE6-9
-		@include background-image(linear-gradient(top, #ffffff 0%,#f3f3f3 38%,#ededed 39%,#ffffff 100%));
-		@include box-shadow(0px 0px 15px 0px rgba(#000,0.75));
-		overflow: visible;
-		color: #555;
-		font-size: 0.85em;
-		@include display-flex();
-		@include justify-content(center);
-
-		> div.ef2f {
-			@include align-self(center);
-			text-align: center;
-
-			p {
-				margin: 0;
-			}
-
-			a {
-				margin-top: 0;
-				display: block;
-				background: center url('/src/images/eFace2Face-logo.png') no-repeat;
-				height: 24px;
-				width: 150px;
-				text-decoration: none;
-			}
-		}
-	}  // div.footer
-
-
-	@import "SettingsWidget";
-
 
 }  // #doctortcweb
