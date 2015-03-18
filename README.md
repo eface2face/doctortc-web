@@ -7,38 +7,30 @@ This application uses internally the [doctortc.js](https://bitbucket.org/ibc_ali
 
 ## Dependencies
 
-*  **nodejs** (provides `npm` command).
-*  **grunt-cli** (provides `grunt` command):
-```
-$ npm install -g grunt-cli
-```
-*  **ruby** >= 1.9.
-*  **compass** >= 1.0.0.alpha.19 Ruby gem:
-```
-$ gem install compass --pre
-```
+*  **nodejs** (provides `npm` command)
+*  **grunt-cli** (provides `grunt` command)
+*  **ruby** >= 1.9
+*  **compass** Ruby gem
+
 
 ## Build
 
-* Get the source code and enter the root directory.
-```
-$ cd doctortcweb/
-```
+#### Get the source code and enter the root directory
 
-* Install Node dependencies:
-```
-$ npm install
-```
+    $ cd doctortcweb/
 
-* Build `dist/doctortcweb-devel.js` library:
-```
-grunt devel
-```
+#### Install Node dependencies
 
-* Build `dist/doctortcweb-X.Y.Z.js` and `dist/doctortcweb-X.Y.Z.min.js` libraries:
-```
-grunt dist
-```
+    $ npm install
+
+#### Build `dist/doctortcweb-devel.js` library
+
+    $ grunt devel
+
+#### Build `dist/doctortcweb-X.Y.Z.js` and `dist/doctortcweb-X.Y.Z.min.js` libraries:
+
+    $ grunt dist
+
 
 ## Run the web
 

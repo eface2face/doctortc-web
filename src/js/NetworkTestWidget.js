@@ -135,6 +135,15 @@
 	NetworkTestWidget.prototype.onSuccess = function(statistics, packetsInfo, pendingOngoingData) {
 		// Show statistics.
 
+		// TODO: TMP
+		if (! window.TMP) {
+			window.TMP = {
+				statistics: statistics,
+				packetsInfo: packetsInfo,
+				pendingOngoingData: pendingOngoingData
+			};
+		}
+
 		this.dom.statistics.numPacketsValue.text(statistics.numPackets);
 		this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
 		this.dom.statistics.sendingIntervalValue.text(statistics.sendingInterval + ' ms');

@@ -86,7 +86,7 @@ body#doctortcweb {
 		margin: 60px auto;
 
 		> div.content {
-			width: 50%;
+			width: 30%;
 			min-width: $page-min-width / 2;
 			margin: 0 auto;
 
@@ -109,7 +109,7 @@ body#doctortcweb {
 				margin: 0;
 				font-size: 1rem;
 				text-align: center;
-				color: shade(#fff, 10%);
+				color: rgba(#fff, 0.8);
 			}
 		}
 	}
