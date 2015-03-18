@@ -185,7 +185,7 @@
 					show: true,
 					position: "right",
 					font: {
- 						color: "#14579a"
+ 						color: "#0180d9"
 					},
 					tickFormatter: function(v, axis) {
 						return (v / 1000).toFixed(0) + " kbytes";
@@ -197,7 +197,7 @@
 					show: true,
 					position: "left",
 					font: {
-						color: "#e75713"
+						color: "#ea4e39"
 					},
 					tickFormatter: function(v, axis) {
 						return v + " ms";
@@ -222,7 +222,7 @@
 			xaxis: 1,
 			yaxis: 3,
 			label: "RTT per packet",
-			color: "#e75713",
+			color: "#ea4e39",
 			points: {
 				show: true,
 				radius: 1

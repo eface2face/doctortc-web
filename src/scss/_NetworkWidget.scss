@@ -35,8 +35,8 @@ div.NetworkTestWidget {
 				&.header {
 					font-weight: bold;
 					color: #FFF;
-					background-color: #0d4872;
-					border: 1px solid #0d4872;
+					background-color: #0180d9;
+					border: 1px solid #0180d9;
 
 					> .cell {
 						border: none !important;
@@ -71,7 +71,7 @@ div.NetworkTestWidget {
 		display: block;
 		margin-top: 20px;
 		text-align: center;
-		color: #e75713;
+		color: $color-orange;
 
 		&:hover {
 			//color: #e7a713;
