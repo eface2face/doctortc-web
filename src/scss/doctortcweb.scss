@@ -109,7 +109,7 @@ body#doctortcweb {
 				margin: 0;
 				font-size: 1rem;
 				text-align: center;
-				color: rgba(#fff, 0.8);
+				color: rgba(#fff, 0.9);
 			}
 		}
 	}
@@ -156,5 +156,25 @@ body#doctortcweb {
 
 		}  // div.content
 	}  // div.container
+
+
+	// Wargning.
+	> div.warning {
+		display: none;
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		padding: 4rem 0;
+		background-color: rgba(#000, 0.9);
+
+		p {
+			width: 75%;
+			min-width: $page-min-width;
+			margin: 0 auto;
+			text-align: center;
+			font-size: 2rem;
+			color: #fff;
+		}
+	}  // div.warning
 
 }  // #doctortcweb

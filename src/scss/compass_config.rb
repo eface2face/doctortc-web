@@ -26,7 +26,7 @@ end
 
 
 # Set this to the root of your project when deployed:
-http_path = "/"  # TODO: MIERDA
+# http_path = "/"
 css_dir = "web/css"
 sass_dir = "src/scss"
 images_dir = "src/images"

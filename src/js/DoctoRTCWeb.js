@@ -11,6 +11,7 @@ var DoctoRTCWeb = (function() {
 		this.running = false;
 
 		this.dom = $('#doctortcweb');
+		this.dom.warning = this.dom.find('.warning');
 		this.dom.hasWebRTC = this.dom.find('.hasWebRTC');
 		this.dom.hasWebRTC.result = this.dom.hasWebRTC.find('.result');
 		this.dom.networkTestUdp2Udp = this.dom.find('.test.network.udp2udp');
@@ -66,6 +67,19 @@ var DoctoRTCWeb = (function() {
 			this.running = false;
 			return;
 		}
+
+		// Show the warning for a while.
+		setTimeout(function() {
+			self.dom.warning.fadeIn(500);
+
+			setTimeout(function() {
+				self.dom.warning.fadeOut(1000);
+			}, 10000);
+
+			$(document).click(function() {
+				self.dom.warning.fadeOut(500);
+			});
+		}, 2000);
 
 		this.onTestsStart();
 
