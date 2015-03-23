@@ -1,27 +1,5 @@
 /*global module:false*/
 
-/*
- * Usage:
- *
- * `grunt`: alias for `grunt devel`.
- *
- * `grunt devel`: Generate HTML minified files, compile CSS, concat and lint
- *                for doctortcweb-devel.js.
- *
- * `grunt watch`: Watch changes in src/html/ files (but not for *.min.html)
- *                and generat HTML minified files.
- *                Watch changes in src/scss/ files and compile and minify
- *                them into src/css/doctortcweb.min.css.
- *                Watch changes in src/images/*.* and convert images into dataURI.
- *                Watch changes in src/js/ files and run `grunt js` to
- *                generate dist/doctortcweb-devel.js.
- *                It's 100% useful to let this task running while in
- *                development status.
- *
- * `grunt dist`: Generate HTML minified files, compile CSS, concat and lint
- *               for final doctortcweb-X.Y.Z.js and doctortcweb-X.Y.Z.min.js.
- */
-
 
 module.exports = function(grunt) {
 
@@ -47,49 +25,21 @@ module.exports = function(grunt) {
 		},
 
 		concat: {
-			devel: {
+			js: {
 				src: jsFiles,
-				dest: 'dist/<%= pkg.name %>-devel.js',
+				dest: 'web/js/<%= pkg.name %>.js',
 				options: {
 					banner: '<%= meta.banner %>',
 					separator: '\n\n',
 					footer: '<%= meta.footer %>',
 					process: true
 				},
-				nonull: true
-			},
-			post_devel: {
-				src: [
-					'dist/<%= pkg.name %>-devel.js'
-					// TODO: add jquery.js?
-				],
-				dest: 'dist/<%= pkg.name %>-devel.js',
-				nonull: true
-			},
-			dist: {
-				src: jsFiles,
-				dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js',
-				options: {
-					banner: '<%= meta.banner %>',
-					separator: '\n\n',
-					footer: '<%= meta.footer %>',
-					process: true
-				},
-				nonull: true
-			},
-			post_dist: {
-				src: [
-					'dist/<%= pkg.name %>-<%= pkg.version %>.js'
-					// TODO: add jquery.js?
-				],
-				dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js',
 				nonull: true
 			}
 		},
 
 		jshint: {
-			dist: 'dist/<%= pkg.name %>-<%= pkg.version %>.js',
-			devel: 'dist/<%= pkg.name %>-devel.js',
+			src: 'web/js/<%= pkg.name %>.js',
 			options: {
 				browser: true,
 				curly: true,
@@ -107,17 +57,17 @@ module.exports = function(grunt) {
 				onecase: true,
 				supernew: true,
 				globals: {
-					jQuery: true,
-					$: true,
+					jQuery: false,
+					$: false,
 					DoctoRTC: true
 				}
 			}
 		},
 
 		uglify: {
-			dist: {
+			js: {
 				files: {
-					'dist/<%= pkg.name %>-<%= pkg.version %>.min.js': ['dist/<%= pkg.name %>-<%= pkg.version %>.js']
+					'web/js/<%= pkg.name %>.js': ['web/js/<%= pkg.name %>.js']
 				}
 			},
 			options: {
@@ -162,8 +112,8 @@ module.exports = function(grunt) {
 
 		dataUri: {
 			default: {
-				src: ['src/css/<%= pkg.name %>.css'],
-				dest: 'src/css/',
+				src: ['web/css/<%= pkg.name %>.css'],
+				dest: 'web/css/',
 				options: {
 					// Specified files are only encoding.
 					target: ['src/images/*.*'],
@@ -178,7 +128,7 @@ module.exports = function(grunt) {
 		cssmin: {
 			default: {
 				files: {
-					'src/css/<%= pkg.name %>.min.css': ['src/css/<%= pkg.name %>.css']
+					'web/css/<%= pkg.name %>.css': ['web/css/<%= pkg.name %>.css']
 				}
 			}
 		},
@@ -229,8 +179,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-data-uri');
 
 
-	// Taks for concatenating JS files into doctortcweb-devel.js (uncompressed).
-	grunt.registerTask('js', ['concat:devel', 'jshint:devel', 'concat:post_devel']);
+	// Taks for concatenating JS files into doctortcweb.js.
+	grunt.registerTask('js', ['concat:js', 'jshint', 'uglify']);
 
 	// Task for minifying HTML files.
 	grunt.registerTask('html', ['htmlmin']);
@@ -238,13 +188,9 @@ module.exports = function(grunt) {
 	// Task for building CSS.
 	grunt.registerTask('css', ['compass', 'dataUri', 'cssmin']);
 
-	// Task for building everything and generate doctortcweb-devel.js (uncompressed).
-	grunt.registerTask('devel', ['html', 'css', 'js']);
-
-	// Task for building doctortcweb-X.Y.Z.js (uncompressed) and doctortcweb-X.Y.Z.min.js (minified).
-	grunt.registerTask('dist', ['html', 'css', 'concat:dist', 'jshint:dist', 'uglify:dist', 'concat:post_dist']);
+	grunt.registerTask('web', ['html', 'css', 'js']);
 
 	// Default task is an alias for 'devel'.
-	grunt.registerTask('default', ['devel']);
+	grunt.registerTask('default', ['web']);
 
 };

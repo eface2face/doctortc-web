@@ -1,6 +1,9 @@
-node_modules/
-dist/
-.sass-cache/
-src/html/min/
-src/css/
-.DS_Store
+# Build stuff.
+/node_modules/
+/.sass-cache/
+/src/html/min/
+
+# Generated files.
+/web/css/doctortcweb.css
+/web/js/doctortcweb.js
+

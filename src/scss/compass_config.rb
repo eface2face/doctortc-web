@@ -1,5 +1,5 @@
 # NOTE: required Compass version.
-COMPASS_VERSION = ">= 1.0.0.alpha.19"
+COMPASS_VERSION = ">= 1.0.3"
 
 
 begin
@@ -26,11 +26,11 @@ end
 
 
 # Set this to the root of your project when deployed:
-http_path = "/"
-css_dir = "src/css"
+http_path = "/"  # TODO: MIERDA
+css_dir = "web/css"
 sass_dir = "src/scss"
 images_dir = "src/images"
-javascripts_dir = "src/js"
+# javascripts_dir = "src/js"
 
 
 # You can select your preferred output style here (can be overridden via the command line):
