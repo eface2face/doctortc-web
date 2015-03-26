@@ -1,11 +1,11 @@
 // Variables.
-@import "variables";
+@import 'variables';
 
 
 div.NetworkTestWidget {
 	> div.status {
-
 		div.progressbar {
+			display: none;  // Hidden by default.
 			height: 22px;
 			margin-bottom: 20px;
 		}
@@ -16,13 +16,12 @@ div.NetworkTestWidget {
 	}
 
 	> div.statistics {
-		@include display-flex();
-		@include justify-content(center);
+		display: none;  // Hidden by default.
 
 		> .table {
 			display: table;
 			width: 75%;
-			height: 100%;
+			margin: 0 auto;
 			border-collapse: collapse;
 			@include box-shadow(0px 5px 15px 0px rgba(#000,0.5));
 			overflow: visible;
@@ -67,25 +66,27 @@ div.NetworkTestWidget {
 		}
 	}  // div.statistics
 
-	> a.showChart {
-		display: block;
+	> div.showChart {
+		display: none;  // Hidden by default.
 		margin-top: 20px;
 		text-align: center;
-		color: $color-orange;
 
-		&:hover {
-			//color: #e7a713;
-			text-decoration: underline;
+		> a {
+			color: $color-orange;
+
+			&:hover {
+				text-decoration: underline;
+			}
 		}
 	}
 
 	> div.chart {
-		@include display-flex();
-		@include justify-content(center);
+		display: none;  // Hidden by default.
 		margin-top: 20px;
 
 		> div.content {
 			width: 75%;
+			margin: 0 auto;
 
 			> h4 {
 				text-align: center;

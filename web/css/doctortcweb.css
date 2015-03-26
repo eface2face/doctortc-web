@@ -1,8 +1,6 @@
 html {
   padding: 0;
   margin: 0;
-  position: relative;
-  min-height: 100%;
 }
 
 body {
@@ -75,7 +73,7 @@ body > div.header > div.wrapper > a.home > span.arrow {
   color: #ea4e39;
 }
 body > div.description {
-  margin: 60px auto;
+  margin: 20px auto 40px;
 }
 body > div.description > div.wrapper {
   width: 37.5%;
@@ -91,7 +89,7 @@ body > div.description > div.wrapper > div.art {
   background-size: contain;
 }
 body > div.description > div.wrapper > h2 {
-  margin-top: 40px;
+  margin-top: 20px;
   margin-bottom: 10px;
   font-weight: bold;
   font-size: 2rem;
@@ -105,17 +103,16 @@ body > div.description > div.wrapper > p {
   color: rgba(255, 255, 255, 0.9);
 }
 
-div#test > div.container {
+div#test {
   margin-bottom: 100px;
-  width: 100%;
 }
-div#test > div.container > div.content {
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
+div#test > div.wrapper {
   width: 75%;
   min-width: 900px;
   margin: 0 auto;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 40px;
   background-color: #FFF;
   -moz-border-radius: 10px;
@@ -124,42 +121,39 @@ div#test > div.container > div.content {
   -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.5);
   -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.5);
   box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.5);
-  overflow: visible;
   font-size: 90%;
 }
-div#test > div.container > div.content > div.test {
+div#test > div.wrapper > .testWidget {
   margin-bottom: 3em;
   color: #888;
 }
-div#test > div.container > div.content > div.test:last-child {
+div#test > div.wrapper > .testWidget:last-child {
   margin-bottom: 0;
 }
-div#test > div.container > div.content > div.test > h2 {
+div#test > div.wrapper > .testWidget > h2.title {
   margin-bottom: 0.5em;
   border-bottom: 1px solid #ea4e39;
   color: #666;
   font-weight: bold;
 }
-div#test > div.container > div.content > div.test > h2:first-child {
+div#test > div.wrapper > .testWidget > h2.title:first-child {
   margin-top: 0;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.status div.progressbar {
+div#test > div.wrapper div.NetworkTestWidget > div.status div.progressbar {
+  display: none;
   height: 22px;
   margin-bottom: 20px;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.status .ui-progressbar {
+div#test > div.wrapper div.NetworkTestWidget > div.status .ui-progressbar {
   background: #EFEFEF !important;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics {
-  display: -webkit-flex;
-  display: flex;
-  -webkit-justify-content: center;
-  justify-content: center;
+div#test > div.wrapper div.NetworkTestWidget > div.statistics {
+  display: none;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table {
   display: table;
   width: 75%;
-  height: 100%;
+  margin: 0 auto;
   border-collapse: collapse;
   -moz-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.5);
   -webkit-box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.5);
@@ -167,64 +161,68 @@ div#test > div.container > div.content div.NetworkTestWidget > div.statistics > 
   overflow: visible;
   font-size: 0.9em;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row {
   display: table-row;
   line-height: 1.5em;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row.header {
   font-weight: bold;
   color: #FFF;
   background-color: #0180d9;
   border: 1px solid #0180d9;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header > .cell {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row.header > .cell {
   border: none !important;
   text-align: center !important;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row > .cell {
   display: table-cell;
   padding: 1px 10px;
   border: 1px solid #EEE;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.key {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row > .cell.key {
   width: 40%;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.value {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row > .cell.value {
   width: 30%;
   text-align: center;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.optimal {
+div#test > div.wrapper div.NetworkTestWidget > div.statistics > .table > .row > .cell.optimal {
   width: 30%;
   text-align: center;
 }
-div#test > div.container > div.content div.NetworkTestWidget > a.showChart {
-  display: block;
+div#test > div.wrapper div.NetworkTestWidget > div.showChart {
+  display: none;
   margin-top: 20px;
   text-align: center;
+}
+div#test > div.wrapper div.NetworkTestWidget > div.showChart > a {
   color: #ea4e39;
 }
-div#test > div.container > div.content div.NetworkTestWidget > a.showChart:hover {
+div#test > div.wrapper div.NetworkTestWidget > div.showChart > a:hover {
   text-decoration: underline;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.chart {
-  display: -webkit-flex;
-  display: flex;
-  -webkit-justify-content: center;
-  justify-content: center;
+div#test > div.wrapper div.NetworkTestWidget > div.chart {
+  display: none;
   margin-top: 20px;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content {
+div#test > div.wrapper div.NetworkTestWidget > div.chart > div.content {
   width: 75%;
+  margin: 0 auto;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content > h4 {
+div#test > div.wrapper div.NetworkTestWidget > div.chart > div.content > h4 {
   text-align: center;
   margin-bottom: 0;
 }
-div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content > div.flot {
+div#test > div.wrapper div.NetworkTestWidget > div.chart > div.content > div.flot {
   width: 100%;
   height: 250px;
 }
-div#test > div.warning {
+div#test > div.wrapper div.WebRTCSupportWidget > div.status > p.description {
+  display: none;
+}
+
+div.warning {
   display: none;
   position: fixed;
   bottom: 0;
@@ -232,7 +230,7 @@ div#test > div.warning {
   padding: 4rem 0;
   background-color: rgba(0, 0, 0, 0.9);
 }
-div#test > div.warning p {
+div.warning p {
   width: 75%;
   min-width: 900px;
   margin: 0 auto;

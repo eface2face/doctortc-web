@@ -32,8 +32,256 @@ module.exports={
 }
 
 },{}],2:[function(require,module,exports){
+/**
+ * Expose the NetworkTestWidget class.
+ */
+module.exports = NetworkTestWidget;
 
-},{}],3:[function(require,module,exports){
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	html = require('./html/output.js').NetworkTestWidget;
+
+
+function NetworkTestWidget(data) {
+	var self = this;
+
+	// Whether this is a locally generated test or a remotely retrieved one.
+	this.local = data.local;
+
+	// Create the widget dom and append it to the container.
+	this.dom = $(domify(html));
+	data.container.append(this.dom);
+
+	// Set the dom fields.
+	this.dom.title = this.dom.find('.title');
+	this.dom.status = this.dom.find('.status');
+	this.dom.status.description = this.dom.status.find('.description');
+	this.dom.status.progressbar = this.dom.status.find('.progressbar');
+	this.dom.statistics = this.dom.find('.statistics');
+	this.dom.statistics.numPacketsValue = this.dom.statistics.find('.numPackets .value');
+	this.dom.statistics.packetSizeValue = this.dom.statistics.find('.packetSize .value');
+	this.dom.statistics.sendingIntervalValue = this.dom.statistics.find('.sendingInterval .value');
+	this.dom.statistics.testDurationValue = this.dom.statistics.find('.testDuration .value');
+	this.dom.statistics.outOfOrderValue = this.dom.statistics.find('.outOfOrder .value');
+	this.dom.statistics.packetLossValue = this.dom.statistics.find('.packetLoss .value');
+	this.dom.statistics.RTTValue = this.dom.statistics.find('.RTT .value');
+	this.dom.statistics.bandwidthValue = this.dom.statistics.find('.bandwidth .value');
+	this.dom.statistics.testDurationOptimal = this.dom.statistics.find('.testDuration .optimal');
+	this.dom.statistics.bandwidthOptimal = this.dom.statistics.find('.bandwidth .optimal');
+	this.dom.showChart = this.dom.find('.showChart');
+	this.dom.showChart.button = this.dom.find('.showChart > a');
+	this.dom.chart = this.dom.find('.chart');
+	this.dom.chart.flot = this.dom.chart.find('.flot');
+
+	// Set the title.
+	this.dom.title.text(data.type.toUpperCase() + ' Connectivity Test');
+
+	// Initial status.
+	this.dom.status.description.text('Running the test...');
+
+	// Click event to show the chart.
+	this.dom.showChart.button.click(function () {
+		self.dom.chart.slideDown();
+		self.dom.showChart.slideUp();
+		return false;
+	});
+
+	if (this.local) {
+		// Initialize the status progressbar.
+		this.dom.status.progressbar.progressbar({ value: false });
+		this.dom.status.progressbar.slideDown('slow');
+	}
+}
+
+
+/**
+ * Public API.
+ */
+
+
+NetworkTestWidget.prototype.progress = function (received, total) {
+	var value = (received / total) * 100;
+
+	this.dom.status.progressbar.progressbar('option', 'value', value);
+};
+
+
+NetworkTestWidget.prototype.draw = function (statistics, packetsInfo, pendingOngoingData) {
+	var self = this,
+		plotOptions,
+		dataRTT,
+		numPackets,
+		RTTSerie,
+		pendingOngoingSerie,
+		fakeSerie,
+		i;
+
+	this.dom.status.description.text('Test completed:');
+
+	if (this.local) {
+		// Hide progressbar.
+		setTimeout(function () {
+			self.dom.status.progressbar.slideUp();
+		}, 500);
+
+		// Scroll down.
+		$('body').animate({ scrollTop: $(document).height() }, 2000);
+	}
+
+
+	/**
+	 * Show statistics.
+	 */
+
+	this.dom.statistics.numPacketsValue.text(statistics.numPackets);
+	this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
+	this.dom.statistics.sendingIntervalValue.text(statistics.sendingInterval + ' ms');
+	this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
+	this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder + ' %');
+	this.dom.statistics.packetLossValue.text(statistics.packetLoss + ' %');
+	this.dom.statistics.RTTValue.text(statistics.RTT + ' ms');
+	this.dom.statistics.bandwidthValue.text(statistics.bandwidth + ' kbit/s');
+	this.dom.statistics.testDurationOptimal.text(statistics.optimalTestDuration + ' s');
+	this.dom.statistics.bandwidthOptimal.text(statistics.optimalBandwidth + ' kbit/s');
+
+	if (this.local) {
+		this.dom.statistics.slideDown('normal');
+	} else {
+		this.dom.statistics.show();
+	}
+
+
+	/**
+	 * Show RTT chart.
+	 */
+
+	plotOptions = {
+		series: {},
+		grid: {
+			borderWidth: 1,
+			markings: [
+				{
+					x1axis: { from: 0, to: statistics.ignoredInterval },
+					color: '#DDD'
+				}
+			]
+		},
+		xaxes: [
+			// X axis 1 (shared)
+			{
+				min: 0,
+				show: true,
+				tickFormatter: function (v) {
+					return (v / 1000) + ' s';
+				}
+			}
+		],
+		yaxes: [
+			// Y axis 1 (fake data)
+			{
+				show: false
+			},
+			// Y axis 2 (pending ongoing data)
+			{
+				min: 0,
+				show: true,
+				position: 'right',
+				font: {
+						color: '#0180d9'
+				},
+				tickFormatter: function (v) {
+					return (v / 1000).toFixed(0) + ' kbytes';
+				}
+			},
+			// Y axis 3 (RTT)
+			{
+				min: 0,
+				show: true,
+				position: 'left',
+				font: {
+					color: '#ea4e39'
+				},
+				tickFormatter: function (v) {
+					return v + ' ms';
+				}
+			}
+		],
+		legend: {
+			show: true,
+			backgroundOpacity: 0.9
+		}
+	};
+
+	dataRTT = [];
+	// Total number of packets (not just the not ignored).
+	numPackets = packetsInfo.length;
+	for (i = 0; i < numPackets; i++) {
+		dataRTT[i] = [packetsInfo[i].sentTime, packetsInfo[i].elapsedTime];
+	}
+
+	RTTSerie = {
+		data: dataRTT,
+		xaxis: 1,
+		yaxis: 3,
+		label: 'RTT per packet',
+		color: '#ea4e39',
+		points: {
+			show: true,
+			radius: 1
+		}
+	};
+
+	pendingOngoingSerie = {
+		data: pendingOngoingData,
+		xaxis: 1,
+		yaxis: 2,
+		label: 'Pending ongoing data',
+		color: '#69bbe8',
+		lines: {
+			show: true,
+			steps: false,
+			lineWidth: 0,
+			fill: true,
+			fillColor: {
+				colors: [
+					{
+						opacity: 0.7
+					},
+					{
+						opacity: 0.2
+					}
+				]
+			}
+		}
+	};
+
+	// Fake data serie just for showing a label for the 'unused' X interval.
+	fakeSerie = {
+		data: [],
+		xaxis: 1,
+		yaxis: 1,
+		label: 'Ignored data',
+		color: '#aaa'
+	};
+
+	// Must show the flot (and then hide) so Flot can calculate its real width/height.
+	this.dom.chart.show();
+	this.dom.chart.flot.plot([fakeSerie, pendingOngoingSerie, RTTSerie], plotOptions);
+	this.dom.chart.hide();
+
+	// Show 'chart' button.
+	if (this.local) {
+		this.dom.showChart.slideDown();
+	} else {
+		this.dom.showChart.show();
+	}
+};
+
+},{"./html/output.js":6,"domify":19,"jquery":20}],3:[function(require,module,exports){
 /**
  * Expose the Tester class.
  */
@@ -154,6 +402,9 @@ function run() {
 		debug('starting %s test', testType);
 		self.events.networkteststart(testType);
 
+		// Set the onPacketReceived listener.
+		self.settings.options.onPacketReceived = self.events.networktestprogress;
+
 		self.currentNetworkTester = doctortc.test(
 			// turnServer
 			self.settings[testType],
@@ -179,13 +430,65 @@ function run() {
 	}
 }
 
-},{"debug":5,"doctortc":9}],4:[function(require,module,exports){
+},{"debug":7,"doctortc":11}],4:[function(require,module,exports){
+/**
+ * Expose the WebRTCSupportWidget class.
+ */
+module.exports = WebRTCSupportWidget;
+
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	html = require('./html/output.js').WebRTCSupportWidget;
+
+
+function WebRTCSupportWidget(data) {
+	// Whether this is a locally generated test or a remotely retrieved one.
+	this.local = data.local;
+
+	// Create the widget dom and append it to the container.
+	this.dom = $(domify(html));
+	data.container.append(this.dom);
+
+	// Set the dom fields.
+	this.dom.status = this.dom.find('.status');
+	this.dom.status.description = this.dom.status.find('.description');
+}
+
+
+/**
+ * Public API.
+ */
+
+
+WebRTCSupportWidget.prototype.supported = function (supported) {
+	if (supported) {
+		this.dom.status.description.text('WebRTC supported');
+	} else {
+		this.dom.status.description.text('WebRTC unsupported');
+	}
+
+	if (this.local) {
+		this.dom.status.description.slideDown();
+	} else {
+		this.dom.status.description.show();
+	}
+
+	// Scroll down.
+	// $('html, body').animate({ scrollTop: $(document).height() }, 'slow');
+};
+
+},{"./html/output.js":6,"domify":19,"jquery":20}],5:[function(require,module,exports){
 (function (global){
 /**
  * Expose a dummy object.
  */
 module.exports = {
-	debug: require('debug')
+	debug: require('debug'),
+	jQuery: require('jquery')  // Hack for jQuery plugins (attach it to window).
 };
 
 
@@ -199,11 +502,17 @@ var debug = require('debug')('doctortcweb'),
 	settings = require('../etc/doctortc-settings.json'),
 	Tester = require('./Tester'),
 	NetworkTestWidget = require('./NetworkTestWidget'),
+	WebRTCSupportWidget = require('./WebRTCSupportWidget'),
 
 /**
  * Local variables.
  */
-	tester;
+	tester,
+
+/**
+ * DOM.
+ */
+	dom = {};
 
 
 debugerror.log = console.warn.bind(console);
@@ -213,8 +522,10 @@ $(document).ready(function () {
 	var url = urlParse(global.location.toString(), true),
 		testId;
 
-	if (url.get) {
-		testId = Number(url.get);
+	loadDOM();
+
+	if (url.query.get) {
+		testId = Number(url.query.get);
 		getTest(testId);
 	} else {
 		runTest();
@@ -222,40 +533,63 @@ $(document).ready(function () {
 });
 
 
+function loadDOM() {
+	dom.test = $('#test > .wrapper');
+}
+
+
 function runTest() {
 	debug('runTest()');
 
-	var widget;
+	var webrtcSupportWidget,
+		networkTestWidget;
 
 	if (tester) {
 		tester.cancel();
 	}
+
+	webrtcSupportWidget = new WebRTCSupportWidget({
+		container: dom.test,
+		local: true
+	});
 
 	tester = new Tester(settings, {
 		cancel: function () {
 			debug('test canceled');
 		},
 
-		webrtcsupport: function (result) {
-			debug('haswebrtc: %s', result);
+		webrtcsupport: function (supported) {
+			if (supported) {
+				webrtcSupportWidget.supported(true);
+			} else {
+				webrtcSupportWidget.supported(false);
+			}
 		},
 
 		networkteststart: function (type) {
 			debug('%s test starts', type);
 
-			widget = new NetworkTestWidget(type);
+			networkTestWidget = new NetworkTestWidget({
+				type: type,
+				container: dom.test,
+				local: true
+			});
+		},
+
+		networktestprogress: function (received, total) {
+			networkTestWidget.progress(received, total);
 		},
 
 		networktestcomplete: function (type, statistics, packetsInfo, pendingOngoingData) {
 			debug('%s test completed', type);
 
-			widget.draw(statistics, packetsInfo, pendingOngoingData);
+			networkTestWidget.draw(statistics, packetsInfo, pendingOngoingData);
 		},
 
 		networktesterror: function (type, error) {
 			debug('%s test failed', type, error);
 
-			widget.fail(error);
+			networkTestWidget.fail(error);
 		},
 
 		complete: function () {
@@ -270,7 +604,17 @@ function getTest(testId) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../etc/doctortc-settings.json":1,"./NetworkTestWidget":2,"./Tester":3,"debug":5,"jquery":17,"url-parse":18}],5:[function(require,module,exports){
+},{"../etc/doctortc-settings.json":1,"./NetworkTestWidget":2,"./Tester":3,"./WebRTCSupportWidget":4,"debug":7,"jquery":20,"url-parse":21}],6:[function(require,module,exports){
+
+
+
+module.exports = {
+	NetworkTestWidget:   "<div class='testWidget NetworkTestWidget'>\n\n\t<h2 class='title'></h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t\t<div class='progressbar'></div>\n\t</div>\n\n\t<div class='statistics'>\n\t\t<div class='table'>\n\t\t\t<div class='row header'>\n\t\t\t\t<div class='cell field'>Field</div>\n\t\t\t\t<div class='cell value'>Value</div>\n\t\t\t\t<div class='cell optimal'>Optimal</div>\n\t\t\t</div>\n\t\t\t<div class='row numPackets'>\n\t\t\t\t<div class='cell field'>Number of packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row packetSize'>\n\t\t\t\t<div class='cell field'>Packet size</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row sendingInterval'>\n\t\t\t\t<div class='cell field'>Sending interval</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row testDuration'>\n\t\t\t\t<div class='cell field'>Test duration</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t\t<div class='row outOfOrder'>\n\t\t\t\t<div class='cell field'>Out of order packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row packetLoss'>\n\t\t\t\t<div class='cell field'>Packet loss</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row RTT'>\n\t\t\t\t<div class='cell field'>RTT <span class='description'>(round-trip time)</span></div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 ms</div>\n\t\t\t</div>\n\t\t\t<div class='row bandwidth'>\n\t\t\t\t<div class='cell field'>Bandwidth</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\n\t<div class='showChart'>\n\t\t<a href='#'>&#x25ba; show chart</a>\n\t</div>\n\n\t<div class='chart RTT'>\n\t\t<div class='content'>\n\t\t\t<div class='flot'></div>\n\t\t</div>\n\t</div>\n\n</div>\n",
+	WebRTCSupportWidget: "<div class='testWidget WebRTCSupportWidget'>\n\n\t<h2 class='title'>WebRTC Support</h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t</div>\n\n</div>\n"
+};
+
+
+},{}],7:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -447,7 +791,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":6}],6:[function(require,module,exports){
+},{"./debug":8}],8:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -646,7 +990,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":7}],7:[function(require,module,exports){
+},{"ms":9}],9:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -771,7 +1115,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
  * Expose the NetworkTester class.
  */
@@ -1467,7 +1811,7 @@ function endTest() {
 	this.callback(statistics, this.packetsInfo, this.pendingOngoingData);
 }
 
-},{"debug":5,"rtcninja":12}],9:[function(require,module,exports){
+},{"debug":7,"rtcninja":14}],11:[function(require,module,exports){
 /**
  * Expose the doctortc object.
  */
@@ -1512,7 +1856,7 @@ doctortc.test = function (turnServer, callback, errback, options) {
 // Expose the debug module.
 doctortc.debug = require('debug');
 
-},{"./NetworkTester":8,"debug":5,"rtcninja":12}],10:[function(require,module,exports){
+},{"./NetworkTester":10,"debug":7,"rtcninja":14}],12:[function(require,module,exports){
 (function (global){
 /**
  * Expose the Adapter function/object.
@@ -1791,7 +2135,7 @@ function Adapter(options) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bowser":14,"debug":5}],11:[function(require,module,exports){
+},{"bowser":16,"debug":7}],13:[function(require,module,exports){
 /**
  * Expose the RTCPeerConnection class.
  */
@@ -2440,7 +2784,7 @@ function getLocalDescription() {
 	return this._localDescription;
 }
 
-},{"./Adapter":10,"debug":5,"merge":15}],12:[function(require,module,exports){
+},{"./Adapter":12,"debug":7,"merge":17}],14:[function(require,module,exports){
 /**
  * Expose the rtcninja function/object.
  */
@@ -2528,14 +2872,14 @@ rtcninja.debug = require('debug');
 // Expose browser.
 rtcninja.browser = browser;
 
-},{"./Adapter":10,"./RTCPeerConnection":11,"./version":13,"bowser":14,"debug":5}],13:[function(require,module,exports){
+},{"./Adapter":12,"./RTCPeerConnection":13,"./version":15,"bowser":16,"debug":7}],15:[function(require,module,exports){
 /**
  * Expose the 'version' field of package.json.
  */
 module.exports = require('../package.json').version;
 
 
-},{"../package.json":16}],14:[function(require,module,exports){
+},{"../package.json":18}],16:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -2777,7 +3121,7 @@ module.exports = require('../package.json').version;
   return bowser
 });
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.2.0
  * @author yeikos
@@ -2953,7 +3297,7 @@ module.exports = require('../package.json').version;
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
   "version": "0.5.3",
@@ -3005,7 +3349,117 @@ module.exports={
   "_from": "rtcninja@>=0.5.3 <0.6.0"
 }
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
+
+/**
+ * Expose `parse`.
+ */
+
+module.exports = parse;
+
+/**
+ * Tests for browser support.
+ */
+
+var div = document.createElement('div');
+// Setup
+div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
+// Make sure that link elements get serialized correctly by innerHTML
+// This requires a wrapper element in IE
+var innerHTMLBug = !div.getElementsByTagName('link').length;
+div = undefined;
+
+/**
+ * Wrap map from jquery.
+ */
+
+var map = {
+  legend: [1, '<fieldset>', '</fieldset>'],
+  tr: [2, '<table><tbody>', '</tbody></table>'],
+  col: [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
+  // for script/link/style tags to work in IE6-8, you have to wrap
+  // in a div with a non-whitespace character in front, ha!
+  _default: innerHTMLBug ? [1, 'X<div>', '</div>'] : [0, '', '']
+};
+
+map.td =
+map.th = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
+
+map.option =
+map.optgroup = [1, '<select multiple="multiple">', '</select>'];
+
+map.thead =
+map.tbody =
+map.colgroup =
+map.caption =
+map.tfoot = [1, '<table>', '</table>'];
+
+map.polyline =
+map.ellipse =
+map.polygon =
+map.circle =
+map.text =
+map.line =
+map.path =
+map.rect =
+map.g = [1, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">','</svg>'];
+
+/**
+ * Parse `html` and return a DOM Node instance, which could be a TextNode,
+ * HTML DOM Node of some kind (<div> for example), or a DocumentFragment
+ * instance, depending on the contents of the `html` string.
+ *
+ * @param {String} html - HTML string to "domify"
+ * @param {Document} doc - The `document` instance to create the Node for
+ * @return {DOMNode} the TextNode, DOM Node, or DocumentFragment instance
+ * @api private
+ */
+
+function parse(html, doc) {
+  if ('string' != typeof html) throw new TypeError('String expected');
+
+  // default to the global `document` object
+  if (!doc) doc = document;
+
+  // tag name
+  var m = /<([\w:]+)/.exec(html);
+  if (!m) return doc.createTextNode(html);
+
+  html = html.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
+
+  var tag = m[1];
+
+  // body support
+  if (tag == 'body') {
+    var el = doc.createElement('html');
+    el.innerHTML = html;
+    return el.removeChild(el.lastChild);
+  }
+
+  // wrap map
+  var wrap = map[tag] || map._default;
+  var depth = wrap[0];
+  var prefix = wrap[1];
+  var suffix = wrap[2];
+  var el = doc.createElement('div');
+  el.innerHTML = prefix + html + suffix;
+  while (depth--) el = el.lastChild;
+
+  // one element
+  if (el.firstChild == el.lastChild) {
+    return el.removeChild(el.firstChild);
+  }
+
+  // several elements
+  var fragment = doc.createDocumentFragment();
+  while (el.firstChild) {
+    fragment.appendChild(el.removeChild(el.firstChild));
+  }
+
+  return fragment;
+}
+
+},{}],20:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -12212,7 +12666,7 @@ return jQuery;
 
 }));
 
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var required = require('requires-port')
@@ -12439,7 +12893,7 @@ URL.qs = qs;
 URL.location = lolcation;
 module.exports = URL;
 
-},{"./lolcation":19,"querystringify":20,"requires-port":21}],19:[function(require,module,exports){
+},{"./lolcation":22,"querystringify":23,"requires-port":24}],22:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -12488,7 +12942,7 @@ module.exports = function lolcation(loc) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":18}],20:[function(require,module,exports){
+},{"./":21}],23:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -12551,7 +13005,7 @@ function querystringify(obj, prefix) {
 exports.stringify = querystringify;
 exports.parse = querystring;
 
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 /**
@@ -12591,5 +13045,5 @@ module.exports = function required(port, protocol) {
   return port !== 0;
 };
 
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });

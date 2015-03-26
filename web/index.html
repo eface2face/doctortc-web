@@ -15,14 +15,15 @@
 	<link rel='stylesheet' href='css/ef2f-fonts.css'>
 	<link rel='stylesheet' href='css/ef2f-fonts-unhinted.css'>
 	<!-- JS -->
-	<script src='js/jquery-2.1.1.min.js'></script>
-	<script src='js/jquery-ui-1.10.4.custom.min.js'></script>
-	<script src='js/jquery.flot.min.js'></script>
 	<script src='js/doctortcweb.js'></script>
-
 	<script>
+		// Hack for jQuery plugins.
+		window.jQuery = doctortcweb.jQuery
+		// Set debug.
 		doctortcweb.debug.enable('doctortcweb*');
 	</script>
+	<script src='js/jquery-ui-1.10.4.custom.min.js'></script>
+	<script src='js/jquery.flot.min.js'></script>
 </head>
 
 
@@ -43,35 +44,13 @@
 	</div>
 
 	<div id='test'>
-		<div class='container'>
-			<div class='content'>
-
-				<div class='test hasWebRTC'>
-					<h2>WebRTC support</h2>
-					<div class='result'></div>
-				</div>
-
-				<div class='test network udp2udp'>
-					<h2>UDP connectivity test</h2>
-					<div class='result'></div>
-				</div>
-
-				<div class='test network tcp2tcp'>
-					<h2>TCP connectivity test</h2>
-					<div class='result'></div>
-				</div>
-
-				<div class='test network tls2tls'>
-					<h2>TLS connectivity test</h2>
-					<div class='result'></div>
-				</div>
-
-			</div>
+		<div class='wrapper'>
+			<!-- Here test widgets are dynamically inserted. -->
 		</div>
+	</div>
 
-		<div class='warning'>
-			<p>Please do not switch to another application or browser tab until this WebRTC test has finished, otherwise the results will be inaccurate.</p>
-		</div>
+	<div class='warning'>
+		<p>Please do not switch to another application or browser tab until this WebRTC test has finished, otherwise the results will be inaccurate.</p>
 	</div>
 
 </body>
