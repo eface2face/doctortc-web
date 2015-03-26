@@ -23,16 +23,12 @@ html {
 	min-height: 100%;
 }
 
-
-body#doctortcweb {
+body {
 	padding: 0;
 	margin: 0;
 	width: 100%;
 	font-family: MuseoSans, helvetica, arial, sans-serif;
 	font-size: 100%;
-	// text-rendering: optimizeLegibility;
-	// -webkit-text-size-adjust: 100%;
-	// -ms-text-size-adjust: 100%;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 
@@ -58,7 +54,7 @@ body#doctortcweb {
 			width: 75%;
 			min-width: $page-min-width;
 			margin: 0 auto;
-			background: center url('/src/images/eFace2Face-logo.png') no-repeat;
+			background: center url('images/eFace2Face-logo.png') no-repeat;
 
 			> a.home {
 				float: right;
@@ -92,7 +88,7 @@ body#doctortcweb {
 
 			> div.art {
 				height: 100px;
-				background: center url('/src/images/art.png') no-repeat;
+				background: center url('images/art.png') no-repeat;
 				@include background-size(contain);
 			}
 
@@ -112,8 +108,11 @@ body#doctortcweb {
 				color: rgba(#fff, 0.9);
 			}
 		}
-	}
+	}  // div.description
+}  // body
 
+
+div#doctortcweb-tests {
 
 	// Container.
 	> div.container {
@@ -158,7 +157,7 @@ body#doctortcweb {
 	}  // div.container
 
 
-	// Wargning.
+	// Warning.
 	> div.warning {
 		display: none;
 		position: fixed;
@@ -177,4 +176,4 @@ body#doctortcweb {
 		}
 	}  // div.warning
 
-}  // #doctortcweb
+}  // div#doctortcweb-tests

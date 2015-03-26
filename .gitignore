@@ -1,11 +1,4 @@
-# Build stuff.
 /node_modules/
 /.sass-cache/
-/src/html/min/
-/upload.sh
-/copy2ef2fweb.sh
-
-# Generated files.
-/web/css/doctortcweb.css
-/web/js/doctortcweb.js
+npm-debug.log
 

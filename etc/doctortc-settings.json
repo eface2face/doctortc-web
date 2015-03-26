@@ -1,0 +1,31 @@
+{
+	"udp": {
+		"url": "turn:turn.ef2f.com:3478?transport=udp",
+		"username": "turn",
+		"credential": "ef2f"
+	},
+	"tcp": {
+		"url": "turn:turn.ef2f.com:3478?transport=tcp",
+		"username": "turn",
+		"credential": "ef2f"
+	},
+	"tls": {
+		"url": "turns:turn.ef2f.com:443?transport=tcp",
+		"username": "turn",
+		"credential": "ef2f"
+	},
+	// "options": {
+	// 	"packetSize": 1250,
+	// 	"numPackets": 800,
+	// 	"ignoredInterval": 2500,
+	// 	"sendingInterval": 10,
+	// 	"connectTimeout": 5000
+	// }
+	"options": {
+		"packetSize": 1250,
+		"numPackets": 80,
+		"ignoredInterval": 250,
+		"sendingInterval": 10,
+		"connectTimeout": 5000
+	}
+}

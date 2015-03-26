@@ -18,24 +18,15 @@
 	<script src='js/jquery-2.1.1.min.js'></script>
 	<script src='js/jquery-ui-1.10.4.custom.min.js'></script>
 	<script src='js/jquery.flot.min.js'></script>
-	<script src='js/doctortc-0.0.1.min.js'></script>
-	<script src='js/doctortcweb.js'></script>  <!-- TODO: move to js/ -->
+	<script src='js/doctortcweb.js'></script>
 
-	<script type='text/javascript'>
-		$(document).ready(function() {
-			// Create an unique instance of DoctoRTCWeb.
-			window.doctoRTCWeb = new DoctoRTCWeb();
-
-			// Wait 500 ms and automatically run the tests.
-			window.setTimeout(function() {
-				window.doctoRTCWeb.run();
-			}, 500);
-		});
+	<script>
+		doctortcweb.debug.enable('doctortcweb*');
 	</script>
 </head>
 
 
-<body id='doctortcweb'>
+<body>
 
 	<div class='header'>
 		<div class='content'>
@@ -51,34 +42,36 @@
 		</div>
 	</div>
 
-	<div class='container'>
-		<div class='content'>
+	<div id='doctortcweb-tests'>
+		<div class='container'>
+			<div class='content'>
 
-			<div class='test hasWebRTC'>
-				<h2>WebRTC support</h2>
-				<div class='result'></div>
+				<div class='test hasWebRTC'>
+					<h2>WebRTC support</h2>
+					<div class='result'></div>
+				</div>
+
+				<div class='test network udp2udp'>
+					<h2>UDP connectivity test</h2>
+					<div class='result'></div>
+				</div>
+
+				<div class='test network tcp2tcp'>
+					<h2>TCP connectivity test</h2>
+					<div class='result'></div>
+				</div>
+
+				<div class='test network tls2tls'>
+					<h2>TLS connectivity test</h2>
+					<div class='result'></div>
+				</div>
+
 			</div>
-
-			<div class='test network udp2udp'>
-				<h2>UDP connectivity test</h2>
-				<div class='result'></div>
-			</div>
-
-			<div class='test network tcp2tcp'>
-				<h2>TCP connectivity test</h2>
-				<div class='result'></div>
-			</div>
-
-			<div class='test network tls2tls'>
-				<h2>TLS connectivity test</h2>
-				<div class='result'></div>
-			</div>
-
 		</div>
-	</div>
 
-	<div class='warning'>
-		<p>Please do not switch to another application or browser tab until this WebRTC test has finished, otherwise the results will be inaccurate.</p>
+		<div class='warning'>
+			<p>Please do not switch to another application or browser tab until this WebRTC test has finished, otherwise the results will be inaccurate.</p>
+		</div>
 	</div>
 
 </body>
