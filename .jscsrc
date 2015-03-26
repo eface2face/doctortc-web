@@ -5,6 +5,7 @@
 	"excludeFiles": [
 		"node_modules/**",
 		"OLD/**",
-		"web/**"
+		"web/**",
+		"lib/html/output.js"
 	]
 }

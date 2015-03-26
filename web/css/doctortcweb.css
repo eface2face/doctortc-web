@@ -46,14 +46,14 @@ body > div.header {
   -webkit-box-shadow: 0px 2px 5px 0px rgba(102, 102, 102, 0.5);
   box-shadow: 0px 2px 5px 0px rgba(102, 102, 102, 0.5);
 }
-body > div.header > div.content {
+body > div.header > div.wrapper {
   height: 100%;
   width: 75%;
   min-width: 900px;
   margin: 0 auto;
   background: center url("images/eFace2Face-logo.png") no-repeat;
 }
-body > div.header > div.content > a.home {
+body > div.header > div.wrapper > a.home {
   float: right;
   line-height: 110.0px;
   font-size: 1rem;
@@ -64,25 +64,25 @@ body > div.header > div.content > a.home {
   -webkit-transition-duration: 0.5s;
   transition-duration: 0.5s;
 }
-body > div.header > div.content > a.home:hover {
+body > div.header > div.wrapper > a.home:hover {
   -moz-transform: rotateY(360deg);
   -ms-transform: rotateY(360deg);
   -webkit-transform: rotateY(360deg);
   transform: rotateY(360deg);
 }
-body > div.header > div.content > a.home > span.arrow {
+body > div.header > div.wrapper > a.home > span.arrow {
   margin-right: 5px;
   color: #ea4e39;
 }
 body > div.description {
   margin: 60px auto;
 }
-body > div.description > div.content {
-  width: 30%;
+body > div.description > div.wrapper {
+  width: 37.5%;
   min-width: 450px;
   margin: 0 auto;
 }
-body > div.description > div.content > div.art {
+body > div.description > div.wrapper > div.art {
   height: 100px;
   background: center url("images/art.png") no-repeat;
   -moz-background-size: contain;
@@ -90,7 +90,7 @@ body > div.description > div.content > div.art {
   -webkit-background-size: contain;
   background-size: contain;
 }
-body > div.description > div.content > h2 {
+body > div.description > div.wrapper > h2 {
   margin-top: 40px;
   margin-bottom: 10px;
   font-weight: bold;
@@ -98,18 +98,18 @@ body > div.description > div.content > h2 {
   text-align: center;
   color: #fff;
 }
-body > div.description > div.content > p {
+body > div.description > div.wrapper > p {
   margin: 0;
   font-size: 1rem;
   text-align: center;
   color: rgba(255, 255, 255, 0.9);
 }
 
-div#doctortcweb-tests > div.container {
+div#test > div.container {
   margin-bottom: 100px;
   width: 100%;
 }
-div#doctortcweb-tests > div.container > div.content {
+div#test > div.container > div.content {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -127,36 +127,36 @@ div#doctortcweb-tests > div.container > div.content {
   overflow: visible;
   font-size: 90%;
 }
-div#doctortcweb-tests > div.container > div.content > div.test {
+div#test > div.container > div.content > div.test {
   margin-bottom: 3em;
   color: #888;
 }
-div#doctortcweb-tests > div.container > div.content > div.test:last-child {
+div#test > div.container > div.content > div.test:last-child {
   margin-bottom: 0;
 }
-div#doctortcweb-tests > div.container > div.content > div.test > h2 {
+div#test > div.container > div.content > div.test > h2 {
   margin-bottom: 0.5em;
   border-bottom: 1px solid #ea4e39;
   color: #666;
   font-weight: bold;
 }
-div#doctortcweb-tests > div.container > div.content > div.test > h2:first-child {
+div#test > div.container > div.content > div.test > h2:first-child {
   margin-top: 0;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.status div.progressbar {
+div#test > div.container > div.content div.NetworkTestWidget > div.status div.progressbar {
   height: 22px;
   margin-bottom: 20px;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.status .ui-progressbar {
+div#test > div.container > div.content div.NetworkTestWidget > div.status .ui-progressbar {
   background: #EFEFEF !important;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics {
   display: -webkit-flex;
   display: flex;
   -webkit-justify-content: center;
   justify-content: center;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table {
   display: table;
   width: 75%;
   height: 100%;
@@ -167,64 +167,64 @@ div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.
   overflow: visible;
   font-size: 0.9em;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row {
   display: table-row;
   line-height: 1.5em;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header {
   font-weight: bold;
   color: #FFF;
   background-color: #0180d9;
   border: 1px solid #0180d9;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header > .cell {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row.header > .cell {
   border: none !important;
   text-align: center !important;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell {
   display: table-cell;
   padding: 1px 10px;
   border: 1px solid #EEE;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.key {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.key {
   width: 40%;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.value {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.value {
   width: 30%;
   text-align: center;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.optimal {
+div#test > div.container > div.content div.NetworkTestWidget > div.statistics > .table > .row > .cell.optimal {
   width: 30%;
   text-align: center;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > a.showChart {
+div#test > div.container > div.content div.NetworkTestWidget > a.showChart {
   display: block;
   margin-top: 20px;
   text-align: center;
   color: #ea4e39;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > a.showChart:hover {
+div#test > div.container > div.content div.NetworkTestWidget > a.showChart:hover {
   text-decoration: underline;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.chart {
+div#test > div.container > div.content div.NetworkTestWidget > div.chart {
   display: -webkit-flex;
   display: flex;
   -webkit-justify-content: center;
   justify-content: center;
   margin-top: 20px;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.chart > div.content {
+div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content {
   width: 75%;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.chart > div.content > h4 {
+div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content > h4 {
   text-align: center;
   margin-bottom: 0;
 }
-div#doctortcweb-tests > div.container > div.content div.NetworkTestWidget > div.chart > div.content > div.flot {
+div#test > div.container > div.content div.NetworkTestWidget > div.chart > div.content > div.flot {
   width: 100%;
   height: 250px;
 }
-div#doctortcweb-tests > div.warning {
+div#test > div.warning {
   display: none;
   position: fixed;
   bottom: 0;
@@ -232,7 +232,7 @@ div#doctortcweb-tests > div.warning {
   padding: 4rem 0;
   background-color: rgba(0, 0, 0, 0.9);
 }
-div#doctortcweb-tests > div.warning p {
+div#test > div.warning p {
   width: 75%;
   min-width: 900px;
   margin: 0 auto;

@@ -32,6 +32,8 @@ module.exports={
 }
 
 },{}],2:[function(require,module,exports){
+
+},{}],3:[function(require,module,exports){
 /**
  * Expose the Tester class.
  */
@@ -177,7 +179,7 @@ function run() {
 	}
 }
 
-},{"debug":4,"doctortc":8}],3:[function(require,module,exports){
+},{"debug":5,"doctortc":9}],4:[function(require,module,exports){
 (function (global){
 /**
  * Expose a dummy object.
@@ -196,6 +198,7 @@ var debug = require('debug')('doctortcweb'),
 	$ = require('jquery'),
 	settings = require('../etc/doctortc-settings.json'),
 	Tester = require('./Tester'),
+	NetworkTestWidget = require('./NetworkTestWidget'),
 
 /**
  * Local variables.
@@ -222,6 +225,8 @@ $(document).ready(function () {
 function runTest() {
 	debug('runTest()');
 
+	var widget;
+
 	if (tester) {
 		tester.cancel();
 	}
@@ -230,18 +235,29 @@ function runTest() {
 		cancel: function () {
 			debug('test canceled');
 		},
+
 		webrtcsupport: function (result) {
 			debug('haswebrtc: %s', result);
 		},
+
 		networkteststart: function (type) {
 			debug('%s test starts', type);
+
+			widget = new NetworkTestWidget(type);
 		},
-		networktestcomplete: function (type) {
+
+		networktestcomplete: function (type, statistics, packetsInfo, pendingOngoingData) {
 			debug('%s test completed', type);
+
+			widget.draw(statistics, packetsInfo, pendingOngoingData);
 		},
-		networktesterror: function (type) {
-			debug('%s test failed', type);
+
+		networktesterror: function (type, error) {
+			debug('%s test failed', type, error);
+
+			widget.fail(error);
 		},
+
 		complete: function () {
 			debug('test completed');
 		}
@@ -254,7 +270,7 @@ function getTest(testId) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../etc/doctortc-settings.json":1,"./Tester":2,"debug":4,"jquery":16,"url-parse":17}],4:[function(require,module,exports){
+},{"../etc/doctortc-settings.json":1,"./NetworkTestWidget":2,"./Tester":3,"debug":5,"jquery":17,"url-parse":18}],5:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -431,7 +447,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":5}],5:[function(require,module,exports){
+},{"./debug":6}],6:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -630,7 +646,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":6}],6:[function(require,module,exports){
+},{"ms":7}],7:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -755,7 +771,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * Expose the NetworkTester class.
  */
@@ -1451,7 +1467,7 @@ function endTest() {
 	this.callback(statistics, this.packetsInfo, this.pendingOngoingData);
 }
 
-},{"debug":4,"rtcninja":11}],8:[function(require,module,exports){
+},{"debug":5,"rtcninja":12}],9:[function(require,module,exports){
 /**
  * Expose the doctortc object.
  */
@@ -1496,7 +1512,7 @@ doctortc.test = function (turnServer, callback, errback, options) {
 // Expose the debug module.
 doctortc.debug = require('debug');
 
-},{"./NetworkTester":7,"debug":4,"rtcninja":11}],9:[function(require,module,exports){
+},{"./NetworkTester":8,"debug":5,"rtcninja":12}],10:[function(require,module,exports){
 (function (global){
 /**
  * Expose the Adapter function/object.
@@ -1775,7 +1791,7 @@ function Adapter(options) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bowser":13,"debug":4}],10:[function(require,module,exports){
+},{"bowser":14,"debug":5}],11:[function(require,module,exports){
 /**
  * Expose the RTCPeerConnection class.
  */
@@ -2424,7 +2440,7 @@ function getLocalDescription() {
 	return this._localDescription;
 }
 
-},{"./Adapter":9,"debug":4,"merge":14}],11:[function(require,module,exports){
+},{"./Adapter":10,"debug":5,"merge":15}],12:[function(require,module,exports){
 /**
  * Expose the rtcninja function/object.
  */
@@ -2512,14 +2528,14 @@ rtcninja.debug = require('debug');
 // Expose browser.
 rtcninja.browser = browser;
 
-},{"./Adapter":9,"./RTCPeerConnection":10,"./version":12,"bowser":13,"debug":4}],12:[function(require,module,exports){
+},{"./Adapter":10,"./RTCPeerConnection":11,"./version":13,"bowser":14,"debug":5}],13:[function(require,module,exports){
 /**
  * Expose the 'version' field of package.json.
  */
 module.exports = require('../package.json').version;
 
 
-},{"../package.json":15}],13:[function(require,module,exports){
+},{"../package.json":16}],14:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -2761,7 +2777,7 @@ module.exports = require('../package.json').version;
   return bowser
 });
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.2.0
  * @author yeikos
@@ -2937,7 +2953,7 @@ module.exports = require('../package.json').version;
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
   "version": "0.5.3",
@@ -2989,7 +3005,7 @@ module.exports={
   "_from": "rtcninja@>=0.5.3 <0.6.0"
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -12196,7 +12212,7 @@ return jQuery;
 
 }));
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 var required = require('requires-port')
@@ -12423,7 +12439,7 @@ URL.qs = qs;
 URL.location = lolcation;
 module.exports = URL;
 
-},{"./lolcation":18,"querystringify":19,"requires-port":20}],18:[function(require,module,exports){
+},{"./lolcation":19,"querystringify":20,"requires-port":21}],19:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -12472,7 +12488,7 @@ module.exports = function lolcation(loc) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":17}],19:[function(require,module,exports){
+},{"./":18}],20:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -12535,7 +12551,7 @@ function querystringify(obj, prefix) {
 exports.stringify = querystringify;
 exports.parse = querystring;
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 /**
@@ -12575,5 +12591,5 @@ module.exports = function required(port, protocol) {
   return port !== 0;
 };
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });
