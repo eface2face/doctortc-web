@@ -1,0 +1,25 @@
+// Variables.
+@import 'variables';
+
+
+div.TestInfoWidget {
+	padding: 20px 0;
+
+	text-align: center;
+
+	> p.text {
+		text-align: center;
+		font-size: 2rem;
+		color: $color-orange;
+	}
+
+	> a.link {
+		font-size: 2rem;
+		color: #0180d9;
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}

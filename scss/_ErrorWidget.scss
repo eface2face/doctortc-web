@@ -1,0 +1,16 @@
+// Variables.
+@import 'variables';
+
+
+div.ErrorWidget {
+	display: none;  // Hidden initially.
+	padding: 20px 0;
+	background-color: rgba(#000, 0.75);
+	@include border-radius(10px);
+
+	> p.text {
+		text-align: center;
+		font-size: 2rem;
+		color: red;
+	}
+}

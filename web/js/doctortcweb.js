@@ -15,23 +15,71 @@ module.exports={
 		"username": "turn",
 		"credential": "ef2f"
 	},
-	// "options": {
-	// 	"packetSize": 1250,
-	// 	"numPackets": 800,
-	// 	"ignoredInterval": 2500,
-	// 	"sendingInterval": 10,
-	// 	"connectTimeout": 5000
-	// }
 	"options": {
 		"packetSize": 1250,
-		"numPackets": 80,
-		"ignoredInterval": 250,
+		"numPackets": 800,
+		"ignoredInterval": 2500,
 		"sendingInterval": 10,
 		"connectTimeout": 5000
+	},
+	// "options": {
+	// 	"packetSize": 100,
+	// 	"numPackets": 20,
+	// 	"ignoredInterval": 5,
+	// 	"sendingInterval": 5,
+	// 	"connectTimeout": 4000
+	// },
+	"REST": {
+		"put": "https://dev.ef2f.com/ef2f_web/rest/connectivityTests/",
+		"get": "https://dev.ef2f.com/ef2f_web/rest/connectivityTests/"
 	}
 }
 
 },{}],2:[function(require,module,exports){
+/**
+ * Expose the ErrorWidget class.
+ */
+module.exports = ErrorWidget;
+
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	html = require('./html/output.js').ErrorWidget;
+
+
+function ErrorWidget(data) {
+	// Create the widget dom and append it to the container.
+	this.dom = $(domify(html));
+	data.container.append(this.dom);
+
+	// Set the dom fields.
+	this.dom.find('.text').text(data.text);
+
+	this.dom.fadeIn(500);
+}
+
+
+/**
+ * Public API.
+ */
+
+
+ErrorWidget.prototype.remove = function (slow) {
+	var self = this;
+
+	if (!slow) {
+		this.dom.remove();
+	} else {
+		this.dom.slideUp(500, function () {
+			self.dom.remove();
+		});
+	}
+};
+
+},{"./html/output.js":9,"domify":28,"jquery":29}],3:[function(require,module,exports){
 /**
  * Expose the NetworkTestWidget class.
  */
@@ -78,10 +126,12 @@ function NetworkTestWidget(data) {
 	this.dom.chart.flot = this.dom.chart.find('.flot');
 
 	// Set the title.
-	this.dom.title.text(data.type.toUpperCase() + ' Connectivity Test');
+	this.dom.title.text('WebRTC ' + data.type.toUpperCase() + ' Connectivity Test');
 
-	// Initial status.
-	this.dom.status.description.text('Running the test...');
+	if (this.local) {
+		// Initial status.
+		this.dom.status.description.text('Running the test...');
+	}
 
 	// Click event to show the chart.
 	this.dom.showChart.button.click(function () {
@@ -93,7 +143,7 @@ function NetworkTestWidget(data) {
 	if (this.local) {
 		// Initialize the status progressbar.
 		this.dom.status.progressbar.progressbar({ value: false });
-		this.dom.status.progressbar.slideDown('slow');
+		this.dom.status.progressbar.slideDown(500);
 	}
 }
 
@@ -127,11 +177,7 @@ NetworkTestWidget.prototype.draw = function (statistics, packetsInfo, pendingOng
 		setTimeout(function () {
 			self.dom.status.progressbar.slideUp();
 		}, 500);
-
-		// Scroll down.
-		$('body').animate({ scrollTop: $(document).height() }, 2000);
 	}
-
 
 	/**
 	 * Show statistics.
@@ -141,19 +187,18 @@ NetworkTestWidget.prototype.draw = function (statistics, packetsInfo, pendingOng
 	this.dom.statistics.packetSizeValue.text(statistics.packetSize + ' bytes');
 	this.dom.statistics.sendingIntervalValue.text(statistics.sendingInterval + ' ms');
 	this.dom.statistics.testDurationValue.text((statistics.testDuration / 1000) + ' s');
-	this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder + ' %');
-	this.dom.statistics.packetLossValue.text(statistics.packetLoss + ' %');
-	this.dom.statistics.RTTValue.text(statistics.RTT + ' ms');
-	this.dom.statistics.bandwidthValue.text(statistics.bandwidth + ' kbit/s');
-	this.dom.statistics.testDurationOptimal.text(statistics.optimalTestDuration + ' s');
-	this.dom.statistics.bandwidthOptimal.text(statistics.optimalBandwidth + ' kbit/s');
+	this.dom.statistics.outOfOrderValue.text(statistics.outOfOrder.toFixed(2) + ' %');
+	this.dom.statistics.packetLossValue.text(statistics.packetLoss.toFixed(2) + ' %');
+	this.dom.statistics.RTTValue.text(statistics.RTT.toFixed(2) + ' ms');
+	this.dom.statistics.bandwidthValue.text(statistics.bandwidth.toFixed(2) + ' kbit/s');
+	this.dom.statistics.testDurationOptimal.text((statistics.optimalTestDuration / 1000).toFixed(2) + ' s');
+	this.dom.statistics.bandwidthOptimal.text(statistics.optimalBandwidth.toFixed(2) + ' kbit/s');
 
 	if (this.local) {
-		this.dom.statistics.slideDown('normal');
+		this.dom.statistics.slideDown(500);
 	} else {
 		this.dom.statistics.show();
 	}
-
 
 	/**
 	 * Show RTT chart.
@@ -281,7 +326,122 @@ NetworkTestWidget.prototype.draw = function (statistics, packetsInfo, pendingOng
 	}
 };
 
-},{"./html/output.js":6,"domify":19,"jquery":20}],3:[function(require,module,exports){
+
+NetworkTestWidget.prototype.fail = function (error) {
+	var self = this;
+
+	this.dom.status.description.addClass('error');
+	this.dom.status.description.text('Test failed: ' + error);
+
+	if (this.local) {
+		// Hide progressbar.
+		setTimeout(function () {
+			self.dom.status.progressbar.slideUp();
+		}, 500);
+	}
+};
+
+},{"./html/output.js":9,"domify":28,"jquery":29}],4:[function(require,module,exports){
+/**
+ * Expose the SpinnerWidget class.
+ */
+module.exports = SpinnerWidget;
+
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	Spinner = require('../vendor/spin'),
+	html = require('./html/output.js').SpinnerWidget;
+
+
+function SpinnerWidget(data) {
+	var spinOptions,
+		target;
+
+		// Create the widget dom and append it to the container.
+	this.dom = $(domify(html));
+	data.container.append(this.dom);
+
+	// Set the dom fields.
+	this.dom.find('.text').text(data.text);
+
+	// Add the spinner.
+	spinOptions = {
+		lines: 13, // The number of lines to draw
+		length: 18, // The length of each line
+		width: 9, // The line thickness
+		radius: 30, // The radius of the inner circle
+		corners: 1, // Corner roundness (0..1)
+		rotate: 0, // The rotation offset
+		direction: 1, // 1: clockwise, -1: counterclockwise
+		color: '#000', // #rgb or #rrggbb or array of colors
+		speed: 1, // Rounds per second
+		trail: 55, // Afterglow percentage
+		shadow: false, // Whether to render a shadow
+		hwaccel: true, // Whether to use hardware acceleration
+		className: 'spinner', // The CSS class to assign to the spinner
+		zIndex: 2e9, // The z-index (defaults to 2000000000)
+		top: '50%', // Top position relative to parent
+		left: '50%' // Left position relative to parent
+	};
+
+	target = this.dom.find('.spinner')[0];
+	this.spinner = new Spinner(spinOptions).spin(target);
+}
+
+
+/**
+ * Public API.
+ */
+
+
+SpinnerWidget.prototype.remove = function (slow) {
+	var self = this;
+
+	if (!slow) {
+		this.spinner.stop();
+		this.dom.remove();
+	} else {
+		this.dom.slideUp(500, function () {
+			self.spinner.stop();
+			self.dom.remove();
+		});
+	}
+};
+
+},{"../vendor/spin":34,"./html/output.js":9,"domify":28,"jquery":29}],5:[function(require,module,exports){
+/**
+ * Expose the TestInfoWidget class.
+ */
+module.exports = TestInfoWidget;
+
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	html = require('./html/output.js').TestInfoWidget;
+
+
+function TestInfoWidget(data) {
+	var dom = $(domify(html)),
+		link;
+
+	data.container.append(dom);
+
+	link = dom.find('.link');
+
+	// Set the dom fields.
+	dom.find('.text').text(data.text);
+	link.text(data.link);
+	link.attr('href', data.link);
+}
+
+},{"./html/output.js":9,"domify":28,"jquery":29}],6:[function(require,module,exports){
 /**
  * Expose the Tester class.
  */
@@ -292,7 +452,12 @@ module.exports = Tester;
  */
 var debug = require('debug')('doctortcweb:Tester'),
 	debugerror = require('debug')('doctortcweb:ERROR:Tester'),
-	doctortc = require('doctortc');
+	doctortc = require('doctortc'),
+
+/**
+ * Constants.
+ */
+	INTER_TEST_DELAY = 1200;
 
 
 debugerror.log = console.warn.bind(console);
@@ -369,9 +534,9 @@ function run() {
 		debugerror('no WebRTC support');
 		this.events.webrtcsupport(false);
 
-		// End the test.
+		// Cancel the test.
 		this.closed = true;
-		this.events.complete();
+		this.events.cancel();
 		return;
 	}
 
@@ -379,7 +544,9 @@ function run() {
 	 * Run every network test one after the other.
 	 */
 
-	nextNetworkTest();
+	setTimeout(function () {
+		nextNetworkTest();
+	}, INTER_TEST_DELAY);
 
 	function nextNetworkTest() {
 		if (self.closed) {
@@ -414,7 +581,9 @@ function run() {
 				self.events.networktestcomplete(testType, statistics, packetsInfo, pendingOngoingData);
 
 				// Next test.
-				nextNetworkTest();
+				setTimeout(function () {
+					nextNetworkTest();
+				}, INTER_TEST_DELAY);
 			},
 			// errback
 			function (error) {
@@ -422,7 +591,9 @@ function run() {
 				self.events.networktesterror(testType, error);
 
 				// Next test.
-				nextNetworkTest();
+				setTimeout(function () {
+					nextNetworkTest();
+				}, INTER_TEST_DELAY);
 			},
 			// options
 			self.settings.options
@@ -430,7 +601,7 @@ function run() {
 	}
 }
 
-},{"debug":7,"doctortc":11}],4:[function(require,module,exports){
+},{"debug":10,"doctortc":14}],7:[function(require,module,exports){
 /**
  * Expose the WebRTCSupportWidget class.
  */
@@ -468,20 +639,18 @@ WebRTCSupportWidget.prototype.supported = function (supported) {
 	if (supported) {
 		this.dom.status.description.text('WebRTC supported');
 	} else {
+		this.dom.status.description.addClass('error');
 		this.dom.status.description.text('WebRTC unsupported');
 	}
 
 	if (this.local) {
-		this.dom.status.description.slideDown();
+		this.dom.status.description.slideDown(500);
 	} else {
 		this.dom.status.description.show();
 	}
-
-	// Scroll down.
-	// $('html, body').animate({ scrollTop: $(document).height() }, 'slow');
 };
 
-},{"./html/output.js":6,"domify":19,"jquery":20}],5:[function(require,module,exports){
+},{"./html/output.js":9,"domify":28,"jquery":29}],8:[function(require,module,exports){
 (function (global){
 /**
  * Expose a dummy object.
@@ -503,16 +672,27 @@ var debug = require('debug')('doctortcweb'),
 	Tester = require('./Tester'),
 	NetworkTestWidget = require('./NetworkTestWidget'),
 	WebRTCSupportWidget = require('./WebRTCSupportWidget'),
+	SpinnerWidget = require('./SpinnerWidget'),
+	ErrorWidget = require('./ErrorWidget'),
+	TestInfoWidget = require('./TestInfoWidget'),
 
 /**
- * Local variables.
+ * Local variables and functions.
  */
 	tester,
+	pageUrl,
+	dom = {},
+	scrollingDown = false,
+	scrollDown = function () {
+		if (scrollingDown) {
+			return;
+		}
 
-/**
- * DOM.
- */
-	dom = {};
+		scrollingDown = true;
+		$('body').animate({ scrollTop: $(document).height() }, 2000, function () {
+			scrollingDown = false;
+		});
+	};
 
 
 debugerror.log = console.warn.bind(console);
@@ -522,10 +702,15 @@ $(document).ready(function () {
 	var url = urlParse(global.location.toString(), true),
 		testId;
 
+	pageUrl = url.protocol + '//' + url.host + url.pathname;
+	if (pageUrl[pageUrl.length - 1] !== '/') {
+		pageUrl = pageUrl + '/';
+	}
+
 	loadDOM();
 
-	if (url.query.get) {
-		testId = Number(url.query.get);
+	if (url.query.testId) {
+		testId = Number(url.query.testId);
 		getTest(testId);
 	} else {
 		runTest();
@@ -535,6 +720,7 @@ $(document).ready(function () {
 
 function loadDOM() {
 	dom.test = $('#test > .wrapper');
+	dom.warning = $('.warning');
 }
 
 
@@ -542,7 +728,8 @@ function runTest() {
 	debug('runTest()');
 
 	var webrtcSupportWidget,
-		networkTestWidget;
+		networkTestWidget,
+		results = {};
 
 	if (tester) {
 		tester.cancel();
@@ -556,11 +743,17 @@ function runTest() {
 	tester = new Tester(settings, {
 		cancel: function () {
 			debug('test canceled');
+
+			hideWarning();
 		},
 
 		webrtcsupport: function (supported) {
 			if (supported) {
 				webrtcSupportWidget.supported(true);
+
+				setTimeout(function () {
+					showWarning();
+				}, 2000);
 			} else {
 				webrtcSupportWidget.supported(false);
 			}
@@ -584,37 +777,253 @@ function runTest() {
 			debug('%s test completed', type);
 
 			networkTestWidget.draw(statistics, packetsInfo, pendingOngoingData);
+
+			// Scroll down.
+			scrollDown();
+
+			// Store the result.
+			results[type] = {
+				statistics: statistics,
+				packetsInfo: packetsInfo,
+				pendingOngoingData: pendingOngoingData
+			};
 		},
 
 		networktesterror: function (type, error) {
 			debug('%s test failed', type, error);
 
 			networkTestWidget.fail(error);
+
+			// Scroll down.
+			scrollDown();
 		},
 
 		complete: function () {
 			debug('test completed');
+
+			hideWarning();
+
+			// Upload the results.
+			uploadTest(results);
 		}
 	});
 }
 
 
-function getTest(testId) {
-	debug('getTest() | [testId:%d]', testId);
+function showWarning() {
+	// Show the warning for a while.
+	dom.warning.fadeIn(500);
+
+	setTimeout(function () {
+		dom.warning.fadeOut(1000);
+	}, 6000);
+
+	$(document).click(function () {
+		dom.warning.fadeOut(500);
+	});
 }
 
+
+function hideWarning() {
+	dom.warning.fadeOut(250);
+}
+
+
+function uploadTest(results) {
+	debug('uploadTest()');
+
+	var url = settings.REST.put,
+		data,
+		type,
+		networkTest,
+		spinnerWidget,
+		testInfoWidget,
+		errorWidget,
+		locationHeader,
+		testId;
+
+	data = {
+		webrtcSupport: true,
+		connectivityTestDatas: []
+	};
+
+	for (type in results) {
+		networkTest = results[type];
+
+		data.connectivityTestDatas.push({
+			type:                 type.toUpperCase(),
+			packetCount:          networkTest.statistics.numPackets,
+			packetSize:           networkTest.statistics.packetSize,
+			sendingInterval:      networkTest.statistics.sendingInterval,
+			duration:             networkTest.statistics.testDuration,
+			optimalDuration:      networkTest.statistics.optimalTestDuration,
+			outOrderPackets:      networkTest.statistics.outOfOrder,
+			packetLoss:           networkTest.statistics.packetLoss,
+			rtt:                  networkTest.statistics.RTT,
+			bandwidth:            networkTest.statistics.bandwidth,
+			optimalBandwidth:     networkTest.statistics.optimalBandwidth,
+			ignoredInterval:      networkTest.statistics.ignoredInterval,
+			chartData:            JSON.stringify({
+				packetsInfo:          networkTest.packetsInfo,
+				pendingOngoingData:   networkTest.pendingOngoingData
+			})
+		});
+	}
+
+	spinnerWidget = new SpinnerWidget({
+		container: dom.test,
+		text: 'uploading test data ...'
+	});
+
+	$.ajax(url, {
+		method: 'PUT',
+		contentType: 'application/json',
+		processData: false,
+		data: JSON.stringify(data),
+		global: false,
+		success : function (data, textStatus, jqXHR) {
+			debug('upload success [textStatus:%s, data:%o]', textStatus, data);
+
+			locationHeader = jqXHR.getResponseHeader('Location');
+			if (!locationHeader) {
+				showError('Error uploading test data: no Location header in response');
+				return;
+			}
+
+			testId = locationHeader.match(/^http.*\/(\d+)$/i);
+			if (!testId) {
+				showError('Error uploading test data: no testId in response');
+				return;
+			}
+			testId = testId[1];
+
+			testInfoWidget = new TestInfoWidget({
+				container: dom.test,
+				text: 'Share the following link with others:',
+				link: pageUrl + '?testId=' + testId
+			});
+
+			scrollDown();
+		},
+		error: function (jqXHR, textStatus, errorThrown) {
+			debugerror('upload error [status:%s, error:%s]', textStatus, errorThrown);
+
+			showError('Error uploading test data: ' + errorThrown);
+		},
+		complete: function () {
+			spinnerWidget.remove();
+		}
+	});
+
+	function showError(text) {
+		errorWidget = new ErrorWidget({
+			container: dom.test,
+			text: text
+		});
+
+		scrollDown();
+	}
+}
+
+
+function getTest(testId) {
+	debug('getTest() | [testId:%d]', testId);
+
+	var url = settings.REST.get + testId,
+		spinnerWidget,
+		errorWidget;
+
+	spinnerWidget = new SpinnerWidget({
+		container: dom.test,
+		text: 'downloading test data ...'
+	});
+
+	$.ajax(url, {
+		method: 'GET',
+		processData: false,
+		dataType: 'json',
+		headers: {
+			Accept: 'application/json'
+		},
+		global: false,
+		success : function (data) {
+			debug('get success [data:%o]', data);
+
+			spinnerWidget.remove(true);
+			showTest(data);
+		},
+		error: function (jqXHR, textStatus, errorThrown) {
+			debugerror('get error [status:%s, error:%s]', textStatus, errorThrown);
+
+			spinnerWidget.remove(true);
+
+			errorWidget = new ErrorWidget({
+				container: dom.test,
+				text: 'Error downloading test data: ' + errorThrown
+			});
+		}
+	});
+
+	function showTest(data) {
+		var i,
+			len,
+			networkTest,
+			webrtcSupportWidget,
+			networkTestWidget,
+			statistics,
+			chartData;
+
+		webrtcSupportWidget = new WebRTCSupportWidget({
+			container: dom.test,
+			local: false
+		});
+
+		webrtcSupportWidget.supported(data.webrtcSupport);
+
+		for (i = 0, len = data.connectivityTestDatas.length; i < len; i++) {
+			networkTest = data.connectivityTestDatas[i];
+
+			statistics = {
+				numPackets:            networkTest.packetCount,
+				packetSize:            networkTest.packetSize,
+				sendingInterval:       networkTest.sendingInterval,
+				testDuration:          networkTest.duration,
+				optimalTestDuration:   networkTest.optimalDuration,
+				outOfOrder:            networkTest.outOrderPackets,
+				packetLoss:            networkTest.packetLoss,
+				RTT:                   networkTest.rtt,
+				bandwidth:             networkTest.bandwidth,
+				optimalBandwidth:      networkTest.optimalBandwidth,
+				ignoredInterval:       networkTest.ignoredInterval
+			};
+
+			chartData = JSON.parse(networkTest.chartData);
+
+			networkTestWidget = new NetworkTestWidget({
+				type: networkTest.type.toLowerCase(),
+				container: dom.test
+			});
+
+			networkTestWidget.draw(statistics, chartData.packetsInfo, chartData.pendingOngoingData);
+		}
+	}
+}
+
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../etc/doctortc-settings.json":1,"./NetworkTestWidget":2,"./Tester":3,"./WebRTCSupportWidget":4,"debug":7,"jquery":20,"url-parse":21}],6:[function(require,module,exports){
+},{"../etc/doctortc-settings.json":1,"./ErrorWidget":2,"./NetworkTestWidget":3,"./SpinnerWidget":4,"./TestInfoWidget":5,"./Tester":6,"./WebRTCSupportWidget":7,"debug":10,"jquery":29,"url-parse":30}],9:[function(require,module,exports){
 
 
 
 module.exports = {
-	NetworkTestWidget:   "<div class='testWidget NetworkTestWidget'>\n\n\t<h2 class='title'></h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t\t<div class='progressbar'></div>\n\t</div>\n\n\t<div class='statistics'>\n\t\t<div class='table'>\n\t\t\t<div class='row header'>\n\t\t\t\t<div class='cell field'>Field</div>\n\t\t\t\t<div class='cell value'>Value</div>\n\t\t\t\t<div class='cell optimal'>Optimal</div>\n\t\t\t</div>\n\t\t\t<div class='row numPackets'>\n\t\t\t\t<div class='cell field'>Number of packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row packetSize'>\n\t\t\t\t<div class='cell field'>Packet size</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row sendingInterval'>\n\t\t\t\t<div class='cell field'>Sending interval</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row testDuration'>\n\t\t\t\t<div class='cell field'>Test duration</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t\t<div class='row outOfOrder'>\n\t\t\t\t<div class='cell field'>Out of order packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row packetLoss'>\n\t\t\t\t<div class='cell field'>Packet loss</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row RTT'>\n\t\t\t\t<div class='cell field'>RTT <span class='description'>(round-trip time)</span></div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 ms</div>\n\t\t\t</div>\n\t\t\t<div class='row bandwidth'>\n\t\t\t\t<div class='cell field'>Bandwidth</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\n\t<div class='showChart'>\n\t\t<a href='#'>&#x25ba; show chart</a>\n\t</div>\n\n\t<div class='chart RTT'>\n\t\t<div class='content'>\n\t\t\t<div class='flot'></div>\n\t\t</div>\n\t</div>\n\n</div>\n",
-	WebRTCSupportWidget: "<div class='testWidget WebRTCSupportWidget'>\n\n\t<h2 class='title'>WebRTC Support</h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t</div>\n\n</div>\n"
+	NetworkTestWidget:   "<div class='testWidget NetworkTestWidget'>\n\n\t<h2 class='title'></h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t\t<div class='progressbar'></div>\n\t</div>\n\n\t<div class='statistics'>\n\t\t<div class='table'>\n\t\t\t<div class='row header'>\n\t\t\t\t<div class='cell field'>Field</div>\n\t\t\t\t<div class='cell value'>Value</div>\n\t\t\t\t<div class='cell optimal'>Optimal</div>\n\t\t\t</div>\n\t\t\t<div class='row numPackets'>\n\t\t\t\t<div class='cell field'>Number of packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row packetSize'>\n\t\t\t\t<div class='cell field'>Packet size</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row sendingInterval'>\n\t\t\t\t<div class='cell field'>Sending interval</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row testDuration'>\n\t\t\t\t<div class='cell field'>Test duration</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t\t<div class='row outOfOrder'>\n\t\t\t\t<div class='cell field'>Out of order packets</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row packetLoss'>\n\t\t\t\t<div class='cell field'>Packet loss</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>0 %</div>\n\t\t\t</div>\n\t\t\t<div class='row RTT'>\n\t\t\t\t<div class='cell field'>RTT <span class='description'>(round-trip time)</span></div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'>-</div>\n\t\t\t</div>\n\t\t\t<div class='row bandwidth'>\n\t\t\t\t<div class='cell field'>Bandwidth</div>\n\t\t\t\t<div class='cell value'></div>\n\t\t\t\t<div class='cell optimal'></div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\n\t<div class='showChart'>\n\t\t<a href='#'>&#x25ba; show chart</a>\n\t</div>\n\n\t<div class='chart RTT'>\n\t\t<div class='content'>\n\t\t\t<div class='flot'></div>\n\t\t</div>\n\t</div>\n\n</div>\n",
+	WebRTCSupportWidget: "<div class='testWidget WebRTCSupportWidget'>\n\n\t<h2 class='title'>WebRTC Support</h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t</div>\n\n</div>\n",
+	SpinnerWidget:       "<div class='SpinnerWidget'>\n\n\t<div class='spinner'></div>\n\n\t<p class='text'></p>\n\n</div>\n",
+	ErrorWidget:         "<div class='ErrorWidget'>\n\n\t<p class='text'></p>\n\n</div>\n",
+	TestInfoWidget:      "<div class='TestInfoWidget'>\n\n\t<p class='text'></p>\n\n\t<a class='link'></a>\n\n</div>\n"
 };
 
-
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -791,7 +1200,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":8}],8:[function(require,module,exports){
+},{"./debug":11}],11:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -990,7 +1399,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":9}],9:[function(require,module,exports){
+},{"ms":12}],12:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -1115,7 +1524,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Expose the NetworkTester class.
  */
@@ -1752,7 +2161,7 @@ function endTest() {
 
 	// Test duration (milliseconds).
 	// NOTE: Ignore the ignored initial interval.
-	statistics.testDuration = (new Date() - this.validTestBeginTime).toFixed(3);
+	statistics.testDuration = new Date() - this.validTestBeginTime;
 
 	// Ignored interval.
 	statistics.ignoredInterval = this.ignoredInterval;
@@ -1773,7 +2182,7 @@ function endTest() {
 	statistics.sendingInterval = this.sendingInterval;
 
 	// Percentage of packets received out of order.
-	statistics.outOfOrder = (this.outOfOrderReceivedPackets / statistics.numPackets).toFixed(5) * 100;
+	statistics.outOfOrder = (this.outOfOrderReceivedPackets / statistics.numPackets) * 100;
 
 	// Packet loss and RTT.
 	// NOTE: Don't consider the initial ignored interval.
@@ -1793,25 +2202,25 @@ function endTest() {
 			sumElapsedTimes += (packetInfo.recvTime - packetInfo.sentTime);
 		}
 	}
-	statistics.packetLoss = (lostPackets / statistics.numPackets).toFixed(2) * 100;
-	statistics.RTT = (sumElapsedTimes / (statistics.numPackets - lostPackets)).toFixed(3);
+	statistics.packetLoss = (lostPackets / statistics.numPackets) * 100;
+	statistics.RTT = sumElapsedTimes / (statistics.numPackets - lostPackets);
 
 	// Bandwidth (kbit/s).
 	bandwidth_kbits = (statistics.packetSize * 8 / 1000) * (statistics.numPackets - lostPackets);
 	bandwidth_duration = (statistics.testDuration / 1000) - ((statistics.RTT / 1000) / 2);
-	statistics.bandwidth = (bandwidth_kbits / bandwidth_duration).toFixed(2);
+	statistics.bandwidth = (bandwidth_kbits / bandwidth_duration);
 
 	// Optimal test duration (ms).
-	statistics.optimalTestDuration = (statistics.numPackets * statistics.sendingInterval / 1000).toFixed(3);
+	statistics.optimalTestDuration = statistics.numPackets * statistics.sendingInterval;
 
 	// Optimal bandwidth (kbit/s).
-	statistics.optimalBandwidth = (((statistics.packetSize * 8 / 1000) * statistics.numPackets) / statistics.optimalTestDuration).toFixed(2);
+	statistics.optimalBandwidth = ((statistics.packetSize * 8 / 1000) * statistics.numPackets) / (statistics.optimalTestDuration / 1000);
 
 	// Fire the user's success callback.
 	this.callback(statistics, this.packetsInfo, this.pendingOngoingData);
 }
 
-},{"debug":7,"rtcninja":14}],11:[function(require,module,exports){
+},{"debug":15,"rtcninja":20}],14:[function(require,module,exports){
 /**
  * Expose the doctortc object.
  */
@@ -1856,7 +2265,13 @@ doctortc.test = function (turnServer, callback, errback, options) {
 // Expose the debug module.
 doctortc.debug = require('debug');
 
-},{"./NetworkTester":10,"debug":7,"rtcninja":14}],12:[function(require,module,exports){
+},{"./NetworkTester":13,"debug":15,"rtcninja":20}],15:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./debug":16,"dup":10}],16:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"dup":11,"ms":17}],17:[function(require,module,exports){
+arguments[4][12][0].apply(exports,arguments)
+},{"dup":12}],18:[function(require,module,exports){
 (function (global){
 /**
  * Expose the Adapter function/object.
@@ -2135,7 +2550,7 @@ function Adapter(options) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bowser":16,"debug":7}],13:[function(require,module,exports){
+},{"bowser":22,"debug":23}],19:[function(require,module,exports){
 /**
  * Expose the RTCPeerConnection class.
  */
@@ -2784,7 +3199,7 @@ function getLocalDescription() {
 	return this._localDescription;
 }
 
-},{"./Adapter":12,"debug":7,"merge":17}],14:[function(require,module,exports){
+},{"./Adapter":18,"debug":23,"merge":26}],20:[function(require,module,exports){
 /**
  * Expose the rtcninja function/object.
  */
@@ -2872,14 +3287,14 @@ rtcninja.debug = require('debug');
 // Expose browser.
 rtcninja.browser = browser;
 
-},{"./Adapter":12,"./RTCPeerConnection":13,"./version":15,"bowser":16,"debug":7}],15:[function(require,module,exports){
+},{"./Adapter":18,"./RTCPeerConnection":19,"./version":21,"bowser":22,"debug":23}],21:[function(require,module,exports){
 /**
  * Expose the 'version' field of package.json.
  */
 module.exports = require('../package.json').version;
 
 
-},{"../package.json":18}],16:[function(require,module,exports){
+},{"../package.json":27}],22:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -3121,7 +3536,13 @@ module.exports = require('../package.json').version;
   return bowser
 });
 
-},{}],17:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./debug":24,"dup":10}],24:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"dup":11,"ms":25}],25:[function(require,module,exports){
+arguments[4][12][0].apply(exports,arguments)
+},{"dup":12}],26:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.2.0
  * @author yeikos
@@ -3297,7 +3718,7 @@ module.exports = require('../package.json').version;
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],18:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
   "version": "0.5.3",
@@ -3346,10 +3767,10 @@ module.exports={
   "_id": "rtcninja@0.5.3",
   "scripts": {},
   "_shasum": "5916b1270993d936b979d8bd049523f79fa3f914",
-  "_from": "rtcninja@>=0.5.3 <0.6.0"
+  "_from": "rtcninja@*"
 }
 
-},{}],19:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -3459,7 +3880,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],20:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -12666,7 +13087,7 @@ return jQuery;
 
 }));
 
-},{}],21:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 
 var required = require('requires-port')
@@ -12893,7 +13314,7 @@ URL.qs = qs;
 URL.location = lolcation;
 module.exports = URL;
 
-},{"./lolcation":22,"querystringify":23,"requires-port":24}],22:[function(require,module,exports){
+},{"./lolcation":31,"querystringify":32,"requires-port":33}],31:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -12942,7 +13363,7 @@ module.exports = function lolcation(loc) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":21}],23:[function(require,module,exports){
+},{"./":30}],32:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -13005,7 +13426,7 @@ function querystringify(obj, prefix) {
 exports.stringify = querystringify;
 exports.parse = querystring;
 
-},{}],24:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 /**
@@ -13045,5 +13466,356 @@ module.exports = function required(port, protocol) {
   return port !== 0;
 };
 
-},{}]},{},[5])(5)
+},{}],34:[function(require,module,exports){
+/**
+ * Copyright (c) 2011-2014 Felix Gnass
+ * Licensed under the MIT license
+ */
+(function(root, factory) {
+
+  /* CommonJS */
+  if (typeof exports == 'object')  module.exports = factory()
+
+  /* AMD module */
+  else if (typeof define == 'function' && define.amd) define(factory)
+
+  /* Browser global */
+  else root.Spinner = factory()
+}
+(this, function() {
+  "use strict";
+
+  var prefixes = ['webkit', 'Moz', 'ms', 'O'] /* Vendor prefixes */
+    , animations = {} /* Animation rules keyed by their name */
+    , useCssAnimations /* Whether to use CSS animations or setTimeout */
+
+  /**
+   * Utility function to create elements. If no tag name is given,
+   * a DIV is created. Optionally properties can be passed.
+   */
+  function createEl(tag, prop) {
+    var el = document.createElement(tag || 'div')
+      , n
+
+    for(n in prop) el[n] = prop[n]
+    return el
+  }
+
+  /**
+   * Appends children and returns the parent.
+   */
+  function ins(parent /* child1, child2, ...*/) {
+    for (var i=1, n=arguments.length; i<n; i++)
+      parent.appendChild(arguments[i])
+
+    return parent
+  }
+
+  /**
+   * Insert a new stylesheet to hold the @keyframe or VML rules.
+   */
+  var sheet = (function() {
+    var el = createEl('style', {type : 'text/css'})
+    ins(document.getElementsByTagName('head')[0], el)
+    return el.sheet || el.styleSheet
+  }())
+
+  /**
+   * Creates an opacity keyframe animation rule and returns its name.
+   * Since most mobile Webkits have timing issues with animation-delay,
+   * we create separate rules for each line/segment.
+   */
+  function addAnimation(alpha, trail, i, lines) {
+    var name = ['opacity', trail, ~~(alpha*100), i, lines].join('-')
+      , start = 0.01 + i/lines * 100
+      , z = Math.max(1 - (1-alpha) / trail * (100-start), alpha)
+      , prefix = useCssAnimations.substring(0, useCssAnimations.indexOf('Animation')).toLowerCase()
+      , pre = prefix && '-' + prefix + '-' || ''
+
+    if (!animations[name]) {
+      sheet.insertRule(
+        '@' + pre + 'keyframes ' + name + '{' +
+        '0%{opacity:' + z + '}' +
+        start + '%{opacity:' + alpha + '}' +
+        (start+0.01) + '%{opacity:1}' +
+        (start+trail) % 100 + '%{opacity:' + alpha + '}' +
+        '100%{opacity:' + z + '}' +
+        '}', sheet.cssRules.length)
+
+      animations[name] = 1
+    }
+
+    return name
+  }
+
+  /**
+   * Tries various vendor prefixes and returns the first supported property.
+   */
+  function vendor(el, prop) {
+    var s = el.style
+      , pp
+      , i
+
+    prop = prop.charAt(0).toUpperCase() + prop.slice(1)
+    for(i=0; i<prefixes.length; i++) {
+      pp = prefixes[i]+prop
+      if(s[pp] !== undefined) return pp
+    }
+    if(s[prop] !== undefined) return prop
+  }
+
+  /**
+   * Sets multiple style properties at once.
+   */
+  function css(el, prop) {
+    for (var n in prop)
+      el.style[vendor(el, n)||n] = prop[n]
+
+    return el
+  }
+
+  /**
+   * Fills in default values.
+   */
+  function merge(obj) {
+    for (var i=1; i < arguments.length; i++) {
+      var def = arguments[i]
+      for (var n in def)
+        if (obj[n] === undefined) obj[n] = def[n]
+    }
+    return obj
+  }
+
+  /**
+   * Returns the absolute page-offset of the given element.
+   */
+  function pos(el) {
+    var o = { x:el.offsetLeft, y:el.offsetTop }
+    while((el = el.offsetParent))
+      o.x+=el.offsetLeft, o.y+=el.offsetTop
+
+    return o
+  }
+
+  /**
+   * Returns the line color from the given string or array.
+   */
+  function getColor(color, idx) {
+    return typeof color == 'string' ? color : color[idx % color.length]
+  }
+
+  // Built-in defaults
+
+  var defaults = {
+    lines: 12,            // The number of lines to draw
+    length: 7,            // The length of each line
+    width: 5,             // The line thickness
+    radius: 10,           // The radius of the inner circle
+    rotate: 0,            // Rotation offset
+    corners: 1,           // Roundness (0..1)
+    color: '#000',        // #rgb or #rrggbb
+    direction: 1,         // 1: clockwise, -1: counterclockwise
+    speed: 1,             // Rounds per second
+    trail: 100,           // Afterglow percentage
+    opacity: 1/4,         // Opacity of the lines
+    fps: 20,              // Frames per second when using setTimeout()
+    zIndex: 2e9,          // Use a high z-index by default
+    className: 'spinner', // CSS class to assign to the element
+    top: '50%',           // center vertically
+    left: '50%',          // center horizontally
+    position: 'absolute'  // element position
+  }
+
+  /** The constructor */
+  function Spinner(o) {
+    this.opts = merge(o || {}, Spinner.defaults, defaults)
+  }
+
+  // Global defaults that override the built-ins:
+  Spinner.defaults = {}
+
+  merge(Spinner.prototype, {
+
+    /**
+     * Adds the spinner to the given target element. If this instance is already
+     * spinning, it is automatically removed from its previous target b calling
+     * stop() internally.
+     */
+    spin: function(target) {
+      this.stop()
+
+      var self = this
+        , o = self.opts
+        , el = self.el = css(createEl(0, {className: o.className}), {position: o.position, width: 0, zIndex: o.zIndex})
+        , mid = o.radius+o.length+o.width
+
+      css(el, {
+        left: o.left,
+        top: o.top
+      })
+        
+      if (target) {
+        target.insertBefore(el, target.firstChild||null)
+      }
+
+      el.setAttribute('role', 'progressbar')
+      self.lines(el, self.opts)
+
+      if (!useCssAnimations) {
+        // No CSS animation support, use setTimeout() instead
+        var i = 0
+          , start = (o.lines - 1) * (1 - o.direction) / 2
+          , alpha
+          , fps = o.fps
+          , f = fps/o.speed
+          , ostep = (1-o.opacity) / (f*o.trail / 100)
+          , astep = f/o.lines
+
+        ;(function anim() {
+          i++;
+          for (var j = 0; j < o.lines; j++) {
+            alpha = Math.max(1 - (i + (o.lines - j) * astep) % f * ostep, o.opacity)
+
+            self.opacity(el, j * o.direction + start, alpha, o)
+          }
+          self.timeout = self.el && setTimeout(anim, ~~(1000/fps))
+        })()
+      }
+      return self
+    },
+
+    /**
+     * Stops and removes the Spinner.
+     */
+    stop: function() {
+      var el = this.el
+      if (el) {
+        clearTimeout(this.timeout)
+        if (el.parentNode) el.parentNode.removeChild(el)
+        this.el = undefined
+      }
+      return this
+    },
+
+    /**
+     * Internal method that draws the individual lines. Will be overwritten
+     * in VML fallback mode below.
+     */
+    lines: function(el, o) {
+      var i = 0
+        , start = (o.lines - 1) * (1 - o.direction) / 2
+        , seg
+
+      function fill(color, shadow) {
+        return css(createEl(), {
+          position: 'absolute',
+          width: (o.length+o.width) + 'px',
+          height: o.width + 'px',
+          background: color,
+          boxShadow: shadow,
+          transformOrigin: 'left',
+          transform: 'rotate(' + ~~(360/o.lines*i+o.rotate) + 'deg) translate(' + o.radius+'px' +',0)',
+          borderRadius: (o.corners * o.width>>1) + 'px'
+        })
+      }
+
+      for (; i < o.lines; i++) {
+        seg = css(createEl(), {
+          position: 'absolute',
+          top: 1+~(o.width/2) + 'px',
+          transform: o.hwaccel ? 'translate3d(0,0,0)' : '',
+          opacity: o.opacity,
+          animation: useCssAnimations && addAnimation(o.opacity, o.trail, start + i * o.direction, o.lines) + ' ' + 1/o.speed + 's linear infinite'
+        })
+
+        if (o.shadow) ins(seg, css(fill('#000', '0 0 4px ' + '#000'), {top: 2+'px'}))
+        ins(el, ins(seg, fill(getColor(o.color, i), '0 0 1px rgba(0,0,0,.1)')))
+      }
+      return el
+    },
+
+    /**
+     * Internal method that adjusts the opacity of a single line.
+     * Will be overwritten in VML fallback mode below.
+     */
+    opacity: function(el, i, val) {
+      if (i < el.childNodes.length) el.childNodes[i].style.opacity = val
+    }
+
+  })
+
+
+  function initVML() {
+
+    /* Utility function to create a VML tag */
+    function vml(tag, attr) {
+      return createEl('<' + tag + ' xmlns="urn:schemas-microsoft.com:vml" class="spin-vml">', attr)
+    }
+
+    // No CSS transforms but VML support, add a CSS rule for VML elements:
+    sheet.addRule('.spin-vml', 'behavior:url(#default#VML)')
+
+    Spinner.prototype.lines = function(el, o) {
+      var r = o.length+o.width
+        , s = 2*r
+
+      function grp() {
+        return css(
+          vml('group', {
+            coordsize: s + ' ' + s,
+            coordorigin: -r + ' ' + -r
+          }),
+          { width: s, height: s }
+        )
+      }
+
+      var margin = -(o.width+o.length)*2 + 'px'
+        , g = css(grp(), {position: 'absolute', top: margin, left: margin})
+        , i
+
+      function seg(i, dx, filter) {
+        ins(g,
+          ins(css(grp(), {rotation: 360 / o.lines * i + 'deg', left: ~~dx}),
+            ins(css(vml('roundrect', {arcsize: o.corners}), {
+                width: r,
+                height: o.width,
+                left: o.radius,
+                top: -o.width>>1,
+                filter: filter
+              }),
+              vml('fill', {color: getColor(o.color, i), opacity: o.opacity}),
+              vml('stroke', {opacity: 0}) // transparent stroke to fix color bleeding upon opacity change
+            )
+          )
+        )
+      }
+
+      if (o.shadow)
+        for (i = 1; i <= o.lines; i++)
+          seg(i, -2, 'progid:DXImageTransform.Microsoft.Blur(pixelradius=2,makeshadow=1,shadowopacity=.3)')
+
+      for (i = 1; i <= o.lines; i++) seg(i)
+      return ins(el, g)
+    }
+
+    Spinner.prototype.opacity = function(el, i, val, o) {
+      var c = el.firstChild
+      o = o.shadow && o.lines || 0
+      if (c && i+o < c.childNodes.length) {
+        c = c.childNodes[i+o]; c = c && c.firstChild; c = c && c.firstChild
+        if (c) c.opacity = val
+      }
+    }
+  }
+
+  var probe = css(createEl('group'), {behavior: 'url(#default#VML)'})
+
+  if (!vendor(probe, 'transform') && probe.adj) initVML()
+  else useCssAnimations = vendor(probe, 'animation')
+
+  return Spinner
+
+}));
+
+},{}]},{},[8])(8)
 });

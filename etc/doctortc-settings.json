@@ -14,18 +14,22 @@
 		"username": "turn",
 		"credential": "ef2f"
 	},
-	// "options": {
-	// 	"packetSize": 1250,
-	// 	"numPackets": 800,
-	// 	"ignoredInterval": 2500,
-	// 	"sendingInterval": 10,
-	// 	"connectTimeout": 5000
-	// }
 	"options": {
 		"packetSize": 1250,
-		"numPackets": 80,
-		"ignoredInterval": 250,
+		"numPackets": 800,
+		"ignoredInterval": 2500,
 		"sendingInterval": 10,
 		"connectTimeout": 5000
+	},
+	// "options": {
+	// 	"packetSize": 100,
+	// 	"numPackets": 20,
+	// 	"ignoredInterval": 5,
+	// 	"sendingInterval": 5,
+	// 	"connectTimeout": 4000
+	// },
+	"REST": {
+		"put": "https://dev.ef2f.com/ef2f_web/rest/connectivityTests/",
+		"get": "https://dev.ef2f.com/ef2f_web/rest/connectivityTests/"
 	}
 }
