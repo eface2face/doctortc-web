@@ -1,6 +1,6 @@
 {
   "name": "doctortcweb",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Standalone web for doctortc WebRTC test on www.eface2face.com",
   "main": "lib/doctortcweb.js",
   "author": "Iñaki Baz Castillo at eFace2Face, inc. (http://eface2face.com)",
