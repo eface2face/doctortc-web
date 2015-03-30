@@ -61,16 +61,20 @@ body {
 				font-size: 1rem;
 				font-weight: bold;
 				color: #888;
-				@include transition-duration(0.5s);
+				@include transition-duration(0.25s);
 
 				&:hover {
 					color: #444;
-					@include transform(rotateZ(360deg));
+
+					> span.arrow {
+						@include transform(rotateX(360deg));
+					}
 				}
 
 				> span.arrow {
 					margin-right: 5px;
 					color: $color-orange;
+					@include transition-duration(0.5s);
 				}
 			}
 		}
@@ -150,12 +154,13 @@ div#test {
 			}
 		}  // .testWidget
 
-		@import 'NetworkWidget';
 		@import 'WebRTCSupportWidget';
+		@import 'NetworkTestWidget';
 		@import 'SpinnerWidget';
 		@import 'ErrorWidget';
-		@import 'TestInfoWidget';
+		@import 'TestShareWidget';
 		@import 'ButtonWidget';
+		@import 'TestInfoWidget';
 	}  // div.wrapper
 }  // div#test
 

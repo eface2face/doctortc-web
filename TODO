@@ -1,3 +1,5 @@
+- En IE se queda stuck. Debería fallar y ya está.
+
 - NOTE: No mando ningún test si webrtcSupport es false.
 
 - Añadir .remove() a todos los widgets para que quiten su DOM y sus eventos jQuery.

@@ -40,6 +40,7 @@ div.NetworkTestWidget {
 					> .cell {
 						border: none !important;
 						text-align: center !important;
+						color: inherit !important;
 					}
 				}
 
@@ -48,12 +49,13 @@ div.NetworkTestWidget {
 					padding: 1px 10px;
 					border: 1px solid #EEE;
 
-					&.key {
+					&.field {
 						width: 40%;
 					}
 
 					&.value {
 						width: 30%;
+						color: $color-orange;
 						text-align: center;
 					}
 
