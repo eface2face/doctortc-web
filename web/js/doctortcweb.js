@@ -20,7 +20,7 @@ module.exports={
 		"numPackets": 800,
 		"ignoredInterval": 2500,
 		"sendingInterval": 10,
-		"connectTimeout": 5000
+		"connectTimeout": 6000
 	},
 	// "options": {
 	// 	"packetSize": 100,
@@ -36,6 +36,33 @@ module.exports={
 }
 
 },{}],2:[function(require,module,exports){
+/**
+ * Expose the ButtonWidget class.
+ */
+module.exports = ButtonWidget;
+
+
+/**
+ * Dependencies.
+ */
+var domify = require('domify'),
+	$ = require('jquery'),
+	html = require('./html/output.js').ButtonWidget;
+
+
+function ButtonWidget(data) {
+	var dom;
+
+	// Create the widget dom and append it to the container.
+	dom = $(domify(html));
+	data.container.append(dom);
+
+	// Set the dom fields.
+	dom.find('.text').text(data.text);
+	dom.find('.text').attr('href', data.link);
+}
+
+},{"./html/output.js":10,"domify":30,"jquery":31}],3:[function(require,module,exports){
 /**
  * Expose the ErrorWidget class.
  */
@@ -79,7 +106,7 @@ ErrorWidget.prototype.remove = function (slow) {
 	}
 };
 
-},{"./html/output.js":9,"domify":29,"jquery":30}],3:[function(require,module,exports){
+},{"./html/output.js":10,"domify":30,"jquery":31}],4:[function(require,module,exports){
 /**
  * Expose the NetworkTestWidget class.
  */
@@ -341,7 +368,7 @@ NetworkTestWidget.prototype.fail = function (error, description) {
 	}
 };
 
-},{"./html/output.js":9,"domify":29,"jquery":30}],4:[function(require,module,exports){
+},{"./html/output.js":10,"domify":30,"jquery":31}],5:[function(require,module,exports){
 /**
  * Expose the SpinnerWidget class.
  */
@@ -361,7 +388,7 @@ function SpinnerWidget(data) {
 	var spinOptions,
 		target;
 
-		// Create the widget dom and append it to the container.
+	// Create the widget dom and append it to the container.
 	this.dom = $(domify(html));
 	data.container.append(this.dom);
 
@@ -412,7 +439,7 @@ SpinnerWidget.prototype.remove = function (slow) {
 	}
 };
 
-},{"../vendor/spin":35,"./html/output.js":9,"domify":29,"jquery":30}],5:[function(require,module,exports){
+},{"../vendor/spin":40,"./html/output.js":10,"domify":30,"jquery":31}],6:[function(require,module,exports){
 /**
  * Expose the TestInfoWidget class.
  */
@@ -441,7 +468,7 @@ function TestInfoWidget(data) {
 	link.attr('href', data.link);
 }
 
-},{"./html/output.js":9,"domify":29,"jquery":30}],6:[function(require,module,exports){
+},{"./html/output.js":10,"domify":30,"jquery":31}],7:[function(require,module,exports){
 /**
  * Expose the Tester class.
  */
@@ -590,10 +617,14 @@ function run() {
 				debug('%s test failed: %s', testType, error);
 				self.events.networktesterror(testType, error, description);
 
-				// Next test.
-				setTimeout(function () {
-					nextNetworkTest();
-				}, INTER_TEST_DELAY);
+				if (error !== doctortc.errors.INTERNAL_ERROR) {
+					// Next test.
+					setTimeout(function () {
+						nextNetworkTest();
+					}, INTER_TEST_DELAY);
+				} else {
+					self.cancel(description);
+				}
 			},
 			// options
 			self.settings.options
@@ -601,7 +632,7 @@ function run() {
 	}
 }
 
-},{"debug":10,"doctortc":14}],7:[function(require,module,exports){
+},{"debug":11,"doctortc":15}],8:[function(require,module,exports){
 /**
  * Expose the WebRTCSupportWidget class.
  */
@@ -651,7 +682,7 @@ WebRTCSupportWidget.prototype.supported = function (supported) {
 	}
 };
 
-},{"./html/output.js":9,"domify":29,"jquery":30}],8:[function(require,module,exports){
+},{"./html/output.js":10,"domify":30,"jquery":31}],9:[function(require,module,exports){
 (function (global){
 /**
  * Expose a dummy object.
@@ -670,6 +701,8 @@ var debug = require('debug')('doctortcweb'),
 	urlParse = require('url-parse'),
 	$ = require('jquery'),
 	doctortc = require('doctortc'),
+	rtcninja = doctortc.rtcninja,
+	rtcninjaTemasys = require('rtcninja-temasys'),
 	settings = require('../etc/doctortc-settings.json'),
 	Tester = require('./Tester'),
 	NetworkTestWidget = require('./NetworkTestWidget'),
@@ -677,6 +710,7 @@ var debug = require('debug')('doctortcweb'),
 	SpinnerWidget = require('./SpinnerWidget'),
 	ErrorWidget = require('./ErrorWidget'),
 	TestInfoWidget = require('./TestInfoWidget'),
+	ButtonWidget = require('./ButtonWidget'),
 
 /**
  * Local variables and functions.
@@ -684,6 +718,7 @@ var debug = require('debug')('doctortcweb'),
 	tester,
 	pageUrl,
 	dom = {},
+	warningHidden = false,
 	scrollingDown = false,
 	scrollDown = function () {
 		if (scrollingDown) {
@@ -727,100 +762,120 @@ function loadDOM() {
 
 
 function runTest() {
-	debug('runTest()');
+	debug('runTest() [browser:"%s"]', doctortc.browser);
 
-	debug('browser: %s', doctortc.browser);
-
-	var webrtcSupportWidget,
-		networkTestWidget,
-		results = {},
-		isFirstNetworkTest = true;
-
-	if (tester) {
-		tester.cancel();
-	}
-
-	webrtcSupportWidget = new WebRTCSupportWidget({
-		container: dom.test,
-		local: true,
-		browser: doctortc.browser
-	});
-
-	tester = new Tester(settings, {
-		cancel: function (description) {
-			debug('test canceled: %s', description);
-
-			hideWarning();
+	rtcninjaTemasys({},
+		// alreadyInstalledCb
+		function () {
+			rtcninja({plugin: rtcninjaTemasys});
+			run();
 		},
-
-		webrtcsupport: function (supported) {
-			if (supported) {
-				webrtcSupportWidget.supported(true);
-
-				setTimeout(function () {
-					showWarning();
-				}, 2000);
-			} else {
-				webrtcSupportWidget.supported(false);
-			}
+		// needInstallCb
+		function () {
+			debugerror('runTest() | WebRTC plugin required');
 		},
-
-		networkteststart: function (type) {
-			debug('%s test starts', type);
-
-			networkTestWidget = new NetworkTestWidget({
-				type: type,
-				container: dom.test,
-				local: true
-			});
-
-			if (isFirstNetworkTest) {
-				global.addEventListener('blur', function () {
-					debugerror('runTest() | browser tab lost focus, canceling test');
-					tester.cancel('browser tab lost focus');
-				});
-			}
-			isFirstNetworkTest = false;
-		},
-
-		networktestprogress: function (received, total) {
-			networkTestWidget.progress(received, total);
-		},
-
-		networktestcomplete: function (type, statistics, packetsInfo, pendingOngoingData) {
-			debug('%s test completed', type);
-
-			networkTestWidget.draw(statistics, packetsInfo, pendingOngoingData);
-
-			// Scroll down.
-			scrollDown();
-
-			// Store the result.
-			results[type] = {
-				statistics: statistics,
-				packetsInfo: packetsInfo,
-				pendingOngoingData: pendingOngoingData
-			};
-		},
-
-		networktesterror: function (type, error, description) {
-			debug(type + ' test failed: ' + error + (description ? ' (' + description + ')' : ''));
-
-			networkTestWidget.fail(error, description);
-
-			// Scroll down.
-			scrollDown();
-		},
-
-		complete: function () {
-			debug('test completed');
-
-			hideWarning();
-
-			// Upload the results.
-			uploadTest(results);
+		// notRequiredCb
+		function () {
+			rtcninja();
+			run();
 		}
-	});
+	);
+
+	function run() {
+		var webrtcSupportWidget,
+			networkTestWidget,
+			results = {},
+			isFirstNetworkTest = true;
+
+		if (tester) {
+			tester.cancel();
+		}
+
+		webrtcSupportWidget = new WebRTCSupportWidget({
+			container: dom.test,
+			local: true,
+			browser: doctortc.browser
+		});
+
+		tester = new Tester(settings, {
+			cancel: function (description) {
+				debug('test canceled: %s', description);
+
+				hideWarning();
+
+				showTestButton('Repeat the test');
+			},
+
+			webrtcsupport: function (supported) {
+				if (supported) {
+					webrtcSupportWidget.supported(true);
+
+					setTimeout(function () {
+						if (!warningHidden) {
+							showWarning();
+						}
+					}, 2000);
+				} else {
+					webrtcSupportWidget.supported(false);
+				}
+			},
+
+			networkteststart: function (type) {
+				debug('%s test starts', type);
+
+				networkTestWidget = new NetworkTestWidget({
+					type: type,
+					container: dom.test,
+					local: true
+				});
+
+				if (isFirstNetworkTest) {
+					global.addEventListener('blur', function () {
+						tester.cancel('browser tab lost focus');
+					});
+				}
+				isFirstNetworkTest = false;
+			},
+
+			networktestprogress: function (received, total) {
+				networkTestWidget.progress(received, total);
+			},
+
+			networktestcomplete: function (type, statistics, packetsInfo, pendingOngoingData) {
+				debug('%s test completed', type);
+
+				networkTestWidget.draw(statistics, packetsInfo, pendingOngoingData);
+
+				// Scroll down.
+				scrollDown();
+
+				// Store the result.
+				results[type] = {
+					statistics: statistics,
+					packetsInfo: packetsInfo,
+					pendingOngoingData: pendingOngoingData
+				};
+			},
+
+			networktesterror: function (type, error, description) {
+				debug(type + ' test failed: ' + error + (description ? ' (' + description + ')' : ''));
+
+				networkTestWidget.fail(error, description);
+
+				// Scroll down.
+				scrollDown();
+			},
+
+			complete: function () {
+				debug('test completed');
+
+				hideWarning();
+
+				// Upload the results.
+				uploadTest(results);
+			}
+		});
+	}
 }
 
 
@@ -829,16 +884,21 @@ function showWarning() {
 	dom.warning.fadeIn(500);
 
 	setTimeout(function () {
-		dom.warning.fadeOut(1000);
+		if (!warningHidden) {
+			dom.warning.fadeOut(1000);
+		}
 	}, 6000);
 
 	$(document).click(function () {
-		dom.warning.fadeOut(500);
+		if (!warningHidden) {
+			dom.warning.fadeOut(500);
+		}
 	});
 }
 
 
 function hideWarning() {
+	warningHidden = true;
 	dom.warning.fadeOut(250);
 }
 
@@ -918,12 +978,16 @@ function uploadTest(results) {
 				link: pageUrl + '?testId=' + testId
 			});
 
+			showTestButton('Repeat the test');
+
 			scrollDown();
 		},
 		error: function (jqXHR, textStatus, errorThrown) {
 			debugerror('upload error [status:%s, error:%s]', textStatus, errorThrown);
 
 			showError('Error uploading test data: ' + errorThrown);
+
+			showTestButton('Repeat the test');
 		},
 		complete: function () {
 			spinnerWidget.remove();
@@ -966,6 +1030,7 @@ function getTest(testId) {
 
 			spinnerWidget.remove(true);
 			showTest(data);
+			showTestButton('Test now!');
 		},
 		error: function (jqXHR, textStatus, errorThrown) {
 			debugerror('get error [status:%s, error:%s]', textStatus, errorThrown);
@@ -976,6 +1041,8 @@ function getTest(testId) {
 				container: dom.test,
 				text: 'Error downloading test data: ' + errorThrown
 			});
+
+			showTestButton('Test now!');
 		}
 	});
 
@@ -1026,8 +1093,17 @@ function getTest(testId) {
 }
 
 
+function showTestButton(text) {
+	var buttonWidget = new ButtonWidget({  // jshint ignore:line
+		container: dom.test,
+		text: text,
+		link: pageUrl
+	});
+}
+
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../etc/doctortc-settings.json":1,"./ErrorWidget":2,"./NetworkTestWidget":3,"./SpinnerWidget":4,"./TestInfoWidget":5,"./Tester":6,"./WebRTCSupportWidget":7,"debug":10,"doctortc":14,"jquery":30,"url-parse":31}],9:[function(require,module,exports){
+},{"../etc/doctortc-settings.json":1,"./ButtonWidget":2,"./ErrorWidget":3,"./NetworkTestWidget":4,"./SpinnerWidget":5,"./TestInfoWidget":6,"./Tester":7,"./WebRTCSupportWidget":8,"debug":11,"doctortc":15,"jquery":31,"rtcninja-temasys":32,"url-parse":36}],10:[function(require,module,exports){
 
 
 
@@ -1036,10 +1112,11 @@ module.exports = {
 	WebRTCSupportWidget: "<div class='testWidget WebRTCSupportWidget'>\n\n\t<h2 class='title'>WebRTC Support</h2>\n\n\t<div class='status'>\n\t\t<p class='description'></p>\n\t</div>\n\n</div>\n",
 	SpinnerWidget:       "<div class='SpinnerWidget'>\n\n\t<div class='spinner'></div>\n\n\t<p class='text'></p>\n\n</div>\n",
 	ErrorWidget:         "<div class='ErrorWidget'>\n\n\t<p class='text'></p>\n\n</div>\n",
-	TestInfoWidget:      "<div class='TestInfoWidget'>\n\n\t<p class='text'></p>\n\n\t<a class='link'></a>\n\n</div>\n"
+	TestInfoWidget:      "<div class='TestInfoWidget'>\n\n\t<p class='text'></p>\n\n\t<a class='link'></a>\n\n</div>\n",
+	ButtonWidget:        "<div class='ButtonWidget'>\n\n\t<a class='text'></a>\n\n</div>\n"
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -1216,7 +1293,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":11}],11:[function(require,module,exports){
+},{"./debug":12}],12:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -1415,7 +1492,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":12}],12:[function(require,module,exports){
+},{"ms":13}],13:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -1540,7 +1617,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Expose the NetworkTester class.
  */
@@ -1602,11 +1679,6 @@ function NetworkTester(turnServer, callback, errback, options) {
 		optimalTestDuration,
 		pcConfig,
 		dcOptions;
-
-	// Expose errors.
-	Object.defineProperty(this, 'errors', {
-		value: ERRORS
-	});
 
 	// Timer that limits the time while connecting to the TURN server.
 	this.connectTimeout = options.connectTimeout || C.CONNECT_TIMEOUT;
@@ -1728,13 +1800,19 @@ function NetworkTester(turnServer, callback, errback, options) {
 		id: 'doctortc'
 	};
 
-	// A DataChannel in each PeerConnection.
-	this.dc1 = this.pc1.createDataChannel('channel 1', dcOptions);
-	this.dc2 = this.pc2.createDataChannel('channel 2', dcOptions);
+	try {
+		// A DataChannel in each PeerConnection.
+		this.dc1 = this.pc1.createDataChannel('channel 1', dcOptions);
+		this.dc2 = this.pc2.createDataChannel('channel 2', dcOptions);
 
-	// Set 'arraybuffer' type.
-	this.dc1.binaryType = 'arraybuffer';
-	this.dc2.binaryType = 'arraybuffer';
+		// Set 'arraybuffer' type.
+		this.dc1.binaryType = 'arraybuffer';
+		this.dc2.binaryType = 'arraybuffer';
+	} catch (error) {
+		console.error(error);
+		close.call(this, ERRORS.INTERNAL_ERROR, error.toString());
+		return;
+	}
 
 	// DataChannels' events.46
 	this.dc1.onopen = function () {
@@ -1767,6 +1845,9 @@ function NetworkTester(turnServer, callback, errback, options) {
 	}, this.connectTimeout);
 }
 
+
+// Expose errors.
+NetworkTester.errors = ERRORS;
 
 /**
  * Public API.
@@ -2257,7 +2338,7 @@ function endTest() {
 	this.callback(statistics, this.packetsInfo, this.pendingOngoingData);
 }
 
-},{"debug":16,"rtcninja":21}],14:[function(require,module,exports){
+},{"debug":17,"rtcninja":22}],15:[function(require,module,exports){
 /**
  * Expose the doctortc object.
  */
@@ -2332,6 +2413,11 @@ Object.defineProperty(doctortc, 'browser', {
 });
 
 
+Object.defineProperty(doctortc, 'errors', {
+	value: NetworkTester.errors
+});
+
+
 doctortc.test = function (turnServer, callback, errback, options) {
 	if (!rtcninja.hasWebRTC()) {
 		throw new Error('doctortc.test() | no WebRTC support');
@@ -2343,10 +2429,14 @@ doctortc.test = function (turnServer, callback, errback, options) {
 };
 
 
+// Expose the rtcninja module.
+doctortc.rtcninja = require('rtcninja');
+
+
 // Expose the debug module.
 doctortc.debug = require('debug');
 
-},{"./NetworkTester":13,"bowser":15,"debug":16,"rtcninja":21}],15:[function(require,module,exports){
+},{"./NetworkTester":14,"bowser":16,"debug":17,"rtcninja":22}],16:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -2588,13 +2678,13 @@ doctortc.debug = require('debug');
   return bowser
 });
 
-},{}],16:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./debug":17,"dup":10}],17:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"ms":18}],18:[function(require,module,exports){
+},{"./debug":18,"dup":11}],18:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],19:[function(require,module,exports){
+},{"dup":12,"ms":19}],19:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],20:[function(require,module,exports){
 (function (global){
 /**
  * Expose the Adapter function/object.
@@ -2873,7 +2963,7 @@ function Adapter(options) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bowser":23,"debug":24}],20:[function(require,module,exports){
+},{"bowser":24,"debug":25}],21:[function(require,module,exports){
 /**
  * Expose the RTCPeerConnection class.
  */
@@ -3522,7 +3612,7 @@ function getLocalDescription() {
 	return this._localDescription;
 }
 
-},{"./Adapter":19,"debug":24,"merge":27}],21:[function(require,module,exports){
+},{"./Adapter":20,"debug":25,"merge":28}],22:[function(require,module,exports){
 /**
  * Expose the rtcninja function/object.
  */
@@ -3610,22 +3700,22 @@ rtcninja.debug = require('debug');
 // Expose browser.
 rtcninja.browser = browser;
 
-},{"./Adapter":19,"./RTCPeerConnection":20,"./version":22,"bowser":23,"debug":24}],22:[function(require,module,exports){
+},{"./Adapter":20,"./RTCPeerConnection":21,"./version":23,"bowser":24,"debug":25}],23:[function(require,module,exports){
 /**
  * Expose the 'version' field of package.json.
  */
 module.exports = require('../package.json').version;
 
 
-},{"../package.json":28}],23:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],24:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./debug":25,"dup":10}],25:[function(require,module,exports){
+},{"../package.json":29}],24:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"dup":16}],25:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"ms":26}],26:[function(require,module,exports){
+},{"./debug":26,"dup":11}],26:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],27:[function(require,module,exports){
+},{"dup":12,"ms":27}],27:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],28:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.2.0
  * @author yeikos
@@ -3801,7 +3891,7 @@ arguments[4][12][0].apply(exports,arguments)
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
   "version": "0.5.3",
@@ -3853,7 +3943,7 @@ module.exports={
   "_from": "rtcninja@*"
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -3963,7 +4053,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -13170,7 +13260,443 @@ return jQuery;
 
 }));
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
+(function (global){
+/**
+ * Expose the TemasysPlugin function/object.
+ */
+module.exports = TemasysPlugin;
+
+
+/**
+ * Dependencies.
+ */
+var browser = require('bowser').browser;
+var domready = require('domready');
+var merge = require('merge');
+var debug = require('debug')('rtcninja:TemasysPlugin');
+
+
+/**
+ * Local variables.
+ */
+var getUserMedia = null;
+var RTCPeerConnection = null;
+var RTCSessionDescription = null;
+var RTCIceCandidate = null;
+var MediaStreamTrack = null;
+var attachMediaStream = null;
+var canRenegotiate = false;
+var browserVersion = Number(browser.version) || 0;
+var isDesktop = !!(! browser.mobile || ! browser.tablet);
+var isWin = !!navigator.platform.match(/^Win/i);
+var isMac = !!navigator.platform.match(/^Mac/i);
+
+
+// The plugin HTML element.
+var plugin = null;
+
+// Plugin options. Extensible via API.
+var pluginOptions = {
+	getAllCams: false
+};
+
+// The plugin API interface.
+var pluginInterface = {};
+
+// Plugin information.
+var pluginInfo = {
+	prefix: 'Tem',
+	plugName: 'TemWebRTCPlugin',
+	pluginId: 'plugin0',
+	type: 'application/x-temwebrtcplugin',
+	onload: '__onTemasysPluginReady',
+	portalLink: 'http://temasys.atlassian.net/wiki/display/TWPP/WebRTC+Plugins',
+	downloadLink: null,
+	companyName: 'Temasys'
+};
+
+if (isMac) {
+	pluginInfo.downloadLink = 'http://bit.ly/1n77hco';
+}
+else if(isWin) {
+	pluginInfo.downloadLink = 'http://bit.ly/1kkS4FN';
+}
+
+// Unique identifier of each opened page.
+var pageId = Math.random().toString(36).slice(2);
+
+// Plugin possible states.
+var PLUGIN_STATES = {
+	NONE: 0,          // No plugin use.
+	INITIALIZING: 1,  // Detected need for plugin.
+	INJECTING: 2,     // Injecting plugin.
+	INJECTED: 3,      // Plugin element injected but not usable yet.
+	READY: 4          // Plugin ready to be used.
+};
+
+// Plugin current state.
+var pluginState = PLUGIN_STATES.NONE;
+
+
+/**
+ * Private API.
+ */
+
+
+global.__onTemasysPluginReady = function() {
+	debug('__onTemasysPluginReady()');
+
+	domready(function() {
+		pluginState = PLUGIN_STATES.READY;
+	});
+};
+
+function addEvent(elem, evnt, func) {
+	// W3C DOM.
+	if (elem.addEventListener) {
+		elem.addEventListener(evnt, func, false);
+	}
+	// Old IE DOM.
+	else if (elem.attachEvent) {
+		elem.attachEvent('on' + evnt, func);
+	}
+}
+
+function injectPlugin() {
+	debug('injectPlugin()');
+
+	pluginState = PLUGIN_STATES.INJECTING;
+
+	// Internet Explorer <= 10.
+	if (browser.msie && browserVersion <= 10) {
+		var frag = document.createDocumentFragment();
+
+		plugin = document.createElement('div');
+		plugin.innerHTML = '<object id="' +
+			pluginInfo.pluginId + '" type="' +
+			pluginInfo.type + '" ' + 'width="1" height="1">' +
+			'<param name="pluginId" value="' + pluginInfo.pluginId + '" />' +
+			'<param name="windowless" value="false" />' +
+			'<param name="pageId" value="' + pageId + '" />' +
+			'<param name="onload" value="' + pluginInfo.onload + '" />' +
+			(pluginOptions.getAllCams ? '<param name="forceGetAllCams" value="True" />' : '') +
+			'</object>';
+
+		while (plugin.firstChild) {
+			frag.appendChild(plugin.firstChild);
+		}
+		document.body.appendChild(frag);
+
+		// Need to re-fetch the plugin
+		plugin = document.getElementById(pluginInfo.pluginId);
+	}
+
+	// Internet Explorer > 10 or Safari.
+	else {
+		plugin = document.createElement('object');
+		plugin.id = pluginInfo.pluginId;
+		// IE will only start the plugin if it's ACTUALLY visible.
+		plugin.width = '1px';
+		plugin.height = '1px';
+		plugin.type = pluginInfo.type;
+		plugin.innerHTML = '<param name="onload" value="' + pluginInfo.onload + '">' +
+			'<param name="pluginId" value="' + pluginInfo.pluginId + '">' +
+			'<param name="windowless" value="false" /> ' +
+			(pluginOptions.getAllCams ? '<param name="forceGetAllCams" value="True" />' : '') +
+			'<param name="pageId" value="' + pageId + '">';
+
+		document.body.appendChild(plugin);
+	}
+
+	pluginState = PLUGIN_STATES.INJECTED;
+}
+
+function waitForPluginReady() {
+	while (pluginState !== PLUGIN_STATES.READY) {}  // jshint ignore:line
+}
+
+function defineWebRTCInterface() {
+	debug('defineWebRTCInterface()');
+
+	pluginState = PLUGIN_STATES.INITIALIZING;
+
+	getUserMedia = function(constraints, successCallback, failureCallback) {
+		waitForPluginReady();
+		plugin.getUserMedia(constraints, successCallback, failureCallback);
+	};
+
+	RTCPeerConnection = function(pcConfig, constraints) {
+		var iceServers = pcConfig.iceServers;
+
+		// The plugin requires a custom .hasCredentials boolean.
+		for (var i=0, len=iceServers.length; i<len; i++) {
+			iceServers[i].hasCredentials = iceServers[i].hasOwnProperty('username') && iceServers[i].hasOwnProperty('credential');
+		}
+
+		var mandatory = (constraints && constraints.mandatory) ? constraints.mandatory : null;
+		var optional = (constraints && constraints.optional) ?
+		constraints.optional : null;
+
+		waitForPluginReady();
+		return plugin.PeerConnection(pageId, iceServers, mandatory, optional);
+	};
+
+	RTCSessionDescription = function(data) {
+		waitForPluginReady();
+		return plugin.ConstructSessionDescription(data.type, data.sdp);
+	};
+
+	RTCIceCandidate = function(candidate) {
+		waitForPluginReady();
+		return plugin.ConstructIceCandidate(candidate.sdpMid || '', candidate.sdpMLineIndex, candidate.candidate);
+	};
+
+	MediaStreamTrack = function() {};
+	MediaStreamTrack.getSources = function(callback) {
+		waitForPluginReady();
+		plugin.GetSources(callback);
+	};
+
+	attachMediaStream = function(element, stream) {
+		stream.enableSoundTracks(true);
+
+		if (element.nodeName.toLowerCase() !== 'audio') {
+			var elementId = element.id.length === 0 ? Math.random().toString(36).slice(2) : element.id;
+
+			if (! element.isWebRTCPlugin || !element.isWebRTCPlugin()) {
+				var frag = document.createDocumentFragment();
+				var temp = document.createElement('div');
+				var classHTML = (element.className) ? 'class="' + element.className + '" ' : '';
+				var rectObject = element.getBoundingClientRect();
+
+				temp.innerHTML = '<object id="' + elementId + '" ' + classHTML +
+					'type="' + pluginInfo.type + '">' +
+					'<param name="pluginId" value="' + elementId + '" /> ' +
+					'<param name="pageId" value="' + pageId + '" /> ' +
+					'<param name="windowless" value="true" /> ' +
+					'<param name="streamId" value="' + stream.id + '" /> ' +
+					'</object>';
+				while (temp.firstChild) {
+					frag.appendChild(temp.firstChild);
+				}
+				element.parentNode.insertBefore(frag, element);
+				frag = document.getElementById(elementId);
+				frag.width = rectObject.width + 'px';
+				frag.height = rectObject.height + 'px';
+				element.parentNode.removeChild(element);
+			}
+			else {
+				var children = element.children;
+				for (var i=0, len=children.length; i !== len; i++) {
+					if (children[i].name === 'streamId') {
+						children[i].value = stream.id;
+						break;
+					}
+				}
+				element.setStreamId(stream.id);
+			}
+
+			var newElement = document.getElementById(elementId);
+			newElement.onplaying = (element.onplaying) ? element.onplaying : function () {};
+
+			// On IE the event needs to be plugged manually.
+			if (browser.msie) {
+				addEvent(newElement, 'playing', newElement.onplaying);
+				newElement.onclick = (element.onclick) ? element.onclick : function() {};
+				newElement._TemOnClick = function(id) {
+					newElement.onclick({
+						srcElement: document.getElementById(id)
+					});
+				};
+			}
+
+			return newElement;
+		}
+
+		else {
+			return element;
+		}
+	};
+
+	canRenegotiate = false;  // TODO: Update when fixed in the plugin.
+
+	// Inject the plugin into the HTML.
+	domready(function() {
+		injectPlugin();
+	});
+}
+
+
+/**
+ * Public API.
+ */
+
+
+function TemasysPlugin(options, alreadyInstalledCb, needInstallCb, notRequiredCb) {
+	if (! TemasysPlugin.isRequired()) {
+		if (notRequiredCb) {
+			notRequiredCb();
+		}
+		return;
+	}
+
+	merge(pluginOptions, options);
+
+	if (TemasysPlugin.isInstalled()) {
+		debug('plugin already installed');
+
+		defineWebRTCInterface();
+
+		pluginInterface.getUserMedia = getUserMedia;
+		pluginInterface.RTCPeerConnection = RTCPeerConnection;
+		pluginInterface.RTCSessionDescription = RTCSessionDescription;
+		pluginInterface.RTCIceCandidate = RTCIceCandidate;
+		pluginInterface.MediaStreamTrack = MediaStreamTrack;
+		pluginInterface.attachMediaStream = attachMediaStream;
+		pluginInterface.canRenegotiate = canRenegotiate;
+
+		if (alreadyInstalledCb) {
+			alreadyInstalledCb();
+		}
+	}
+	else {
+		debug('plugin required but not installed');
+
+		pluginInterface = {};
+
+		if (needInstallCb) {
+			needInstallCb({
+				isIE: browser.msie,
+				isSafari: browser.safari,
+				downloadLink: pluginInfo.downloadLink
+			});
+		}
+	}
+}
+
+
+TemasysPlugin.isRequired = function() {
+	if (isDesktop && browser.msie && isWin) {
+		return true;
+	}
+	else if (isDesktop && browser.safari && isMac) {
+		return true;
+	}
+	else {
+		return false;
+	}
+};
+
+
+TemasysPlugin.isInstalled = function() {
+	// Safari.
+	if (browser.safari) {
+		var plugins = navigator.plugins;
+
+		for (var i=0, len=plugins.length; i<len; i++) {
+			if (plugins[i].name.indexOf(pluginInfo.plugName) >= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	// IE.
+	else if (browser.msie) {
+		try {
+			var axo = new global.ActiveXObject(pluginInfo.prefix + '.' + pluginInfo.plugName);  // jshint ignore:line
+			return true;
+		}
+		catch(error) {
+			return false;
+		}
+	}
+};
+
+
+TemasysPlugin.monitorPluginInstallation = function(installedCb, monitorEndCb, interval, maxtime) {
+	if (browser.safari) {
+		debug('monitorPluginInstallation() | Safari requires restart, cannot monitor plugin installation');
+		return false;
+	}
+
+	interval = Number(interval);
+	maxtime = Number(maxtime);
+	if (! interval) { interval = 3000;   }
+	if (! maxtime)  { maxtime  = 180000; }
+
+	debug('monitorPluginInstallation() | [interval: %dms | maxtime: %dms]', interval, maxtime);
+
+	var timer = null;
+	var periodicTimer = setInterval(function() {
+		if (TemasysPlugin.isInstalled()) {
+			debug('monitorPluginInstallation() | plugin installed');
+
+			clearInterval(periodicTimer);
+			clearTimeout(timer);
+
+			TemasysPlugin();  // jshint ignore:line
+
+			if (installedCb) { installedCb(); }
+		}
+	}, interval);
+
+	timer = setTimeout(function() {
+		debug('monitorPluginInstallation() | monitoring ended');
+
+		clearInterval(periodicTimer);
+
+		if (monitorEndCb) { monitorEndCb(); }
+	}, maxtime);
+
+	return true;
+};
+
+
+Object.defineProperty(TemasysPlugin, 'interface', {
+	get: function() {
+		return pluginInterface;
+	}
+});
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"bowser":33,"debug":11,"domready":34,"merge":35}],33:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"dup":16}],34:[function(require,module,exports){
+/*!
+  * domready (c) Dustin Diaz 2014 - License MIT
+  */
+!function (name, definition) {
+
+  if (typeof module != 'undefined') module.exports = definition()
+  else if (typeof define == 'function' && typeof define.amd == 'object') define(definition)
+  else this[name] = definition()
+
+}('domready', function () {
+
+  var fns = [], listener
+    , doc = document
+    , hack = doc.documentElement.doScroll
+    , domContentLoaded = 'DOMContentLoaded'
+    , loaded = (hack ? /^loaded|^c/ : /^loaded|^i|^c/).test(doc.readyState)
+
+
+  if (!loaded)
+  doc.addEventListener(domContentLoaded, listener = function () {
+    doc.removeEventListener(domContentLoaded, listener)
+    loaded = 1
+    while (listener = fns.shift()) listener()
+  })
+
+  return function (fn) {
+    loaded ? fn() : fns.push(fn)
+  }
+
+});
+
+},{}],35:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"dup":28}],36:[function(require,module,exports){
 'use strict';
 
 var required = require('requires-port')
@@ -13397,7 +13923,7 @@ URL.qs = qs;
 URL.location = lolcation;
 module.exports = URL;
 
-},{"./lolcation":32,"querystringify":33,"requires-port":34}],32:[function(require,module,exports){
+},{"./lolcation":37,"querystringify":38,"requires-port":39}],37:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -13446,7 +13972,7 @@ module.exports = function lolcation(loc) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":31}],33:[function(require,module,exports){
+},{"./":36}],38:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -13509,7 +14035,7 @@ function querystringify(obj, prefix) {
 exports.stringify = querystringify;
 exports.parse = querystring;
 
-},{}],34:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 /**
@@ -13549,7 +14075,7 @@ module.exports = function required(port, protocol) {
   return port !== 0;
 };
 
-},{}],35:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 /**
  * Copyright (c) 2011-2014 Felix Gnass
  * Licensed under the MIT license
@@ -13900,5 +14426,5 @@ module.exports = function required(port, protocol) {
 
 }));
 
-},{}]},{},[8])(8)
+},{}]},{},[9])(9)
 });

@@ -19,7 +19,7 @@
 		"numPackets": 800,
 		"ignoredInterval": 2500,
 		"sendingInterval": 10,
-		"connectTimeout": 5000
+		"connectTimeout": 6000
 	},
 	// "options": {
 	// 	"packetSize": 100,

@@ -2,7 +2,6 @@
 @import 'compass/css3/user-interface';
 @import 'compass/css3/transition';
 @import 'compass/css3/box-shadow';
-@import 'compass/css3/text-shadow';
 @import 'compass/css3/images';  // For @include filter-gradient (IE).
 @import 'compass/css3/background-size';
 @import 'compass/css3/box-sizing';
@@ -65,7 +64,8 @@ body {
 				@include transition-duration(0.5s);
 
 				&:hover {
-					@include transform(rotateY(360deg));
+					color: #444;
+					@include transform(rotateZ(360deg));
 				}
 
 				> span.arrow {
@@ -126,7 +126,7 @@ div#test {
 		@include box-shadow(0px 5px 15px 0px rgba(#000,0.5));
 		font-size: 90%;
 
-		> .testWidget {
+		> * {
 			margin-bottom: 3em;
 			// Remove margin-bottom in last element.
 			&:last-child { margin-bottom: 0 }
@@ -155,6 +155,7 @@ div#test {
 		@import 'SpinnerWidget';
 		@import 'ErrorWidget';
 		@import 'TestInfoWidget';
+		@import 'ButtonWidget';
 	}  // div.wrapper
 }  // div#test
 
