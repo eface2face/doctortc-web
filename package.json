@@ -1,6 +1,6 @@
 {
   "name": "doctortcweb",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Standalone web for doctortc WebRTC test on www.eface2face.com",
   "main": "lib/doctortcweb.js",
   "author": "Iñaki Baz Castillo at eFace2Face, inc. (http://eface2face.com)",
@@ -24,6 +24,7 @@
     "gulp-jscs": "^1.4.0",
     "gulp-jscs-stylish": "^1.0.2",
     "gulp-jshint": "^1.9.4",
+    "gulp-minify-css": "^1.0.0",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^1.1.0",
     "jshint-stylish": "^1.0.1",

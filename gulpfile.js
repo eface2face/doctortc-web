@@ -13,6 +13,7 @@ var browserify = require('browserify'),
 	filelog = require('gulp-filelog'),
 	expect = require('gulp-expect-file'),
 	compass = require('gulp-compass'),
+	minifyCSS = require('gulp-minify-css'),
 
 	pkg = require('./package.json'),
 
@@ -45,6 +46,16 @@ gulp.task('css:compass', function () {
 			sass: 'scss',
 			css: 'web/css'
 		}));
+});
+
+
+gulp.task('css:uglify', function () {
+	var src = 'web/css/' + pkg.name + '.css';
+
+	return gulp.src(src)
+		.pipe(filelog('css:uglify'))
+		.pipe(minifyCSS())
+		.pipe(gulp.dest('web/css/'));
 });
 
 
@@ -99,7 +110,7 @@ gulp.task('watch', function () {
 
 
 gulp.task('html', gulp.series('html:brfs'));
-gulp.task('css', gulp.series('css:compass'));
-gulp.task('js', gulp.series('js:lint', 'js:browserify'));
+gulp.task('css', gulp.series('css:compass', 'css:uglify'));
+gulp.task('js', gulp.series('js:lint', 'js:browserify', 'js:uglify'));
 
 gulp.task('default', gulp.series('html', 'css', 'js'));
