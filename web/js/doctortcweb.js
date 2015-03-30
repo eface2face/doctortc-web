@@ -79,7 +79,7 @@ ErrorWidget.prototype.remove = function (slow) {
 	}
 };
 
-},{"./html/output.js":9,"domify":28,"jquery":29}],3:[function(require,module,exports){
+},{"./html/output.js":9,"domify":29,"jquery":30}],3:[function(require,module,exports){
 /**
  * Expose the NetworkTestWidget class.
  */
@@ -327,11 +327,11 @@ NetworkTestWidget.prototype.draw = function (statistics, packetsInfo, pendingOng
 };
 
 
-NetworkTestWidget.prototype.fail = function (error) {
+NetworkTestWidget.prototype.fail = function (error, description) {
 	var self = this;
 
 	this.dom.status.description.addClass('error');
-	this.dom.status.description.text('Test failed: ' + error);
+	this.dom.status.description.text('Test failed: ' + error + (description ? ' (' + description + ')' : ''));
 
 	if (this.local) {
 		// Hide progressbar.
@@ -341,7 +341,7 @@ NetworkTestWidget.prototype.fail = function (error) {
 	}
 };
 
-},{"./html/output.js":9,"domify":28,"jquery":29}],4:[function(require,module,exports){
+},{"./html/output.js":9,"domify":29,"jquery":30}],4:[function(require,module,exports){
 /**
  * Expose the SpinnerWidget class.
  */
@@ -412,7 +412,7 @@ SpinnerWidget.prototype.remove = function (slow) {
 	}
 };
 
-},{"../vendor/spin":34,"./html/output.js":9,"domify":28,"jquery":29}],5:[function(require,module,exports){
+},{"../vendor/spin":35,"./html/output.js":9,"domify":29,"jquery":30}],5:[function(require,module,exports){
 /**
  * Expose the TestInfoWidget class.
  */
@@ -441,7 +441,7 @@ function TestInfoWidget(data) {
 	link.attr('href', data.link);
 }
 
-},{"./html/output.js":9,"domify":28,"jquery":29}],6:[function(require,module,exports){
+},{"./html/output.js":9,"domify":29,"jquery":30}],6:[function(require,module,exports){
 /**
  * Expose the Tester class.
  */
@@ -497,19 +497,19 @@ function Tester(settings, events) {
  */
 
 
-Tester.prototype.cancel = function () {
+Tester.prototype.cancel = function (description) {
 	if (this.closed) {
 		return;
 	}
 
-	debug('cancel()');
+	debug('cancel() [description:"%s"]', description);
 
 	if (this.currentNetworkTester) {
-		this.currentNetworkTester.cancel();
+		this.currentNetworkTester.cancel(description);
 	}
 
 	this.closed = true;
-	this.events.cancel();
+	this.events.cancel(description);
 };
 
 
@@ -586,9 +586,9 @@ function run() {
 				}, INTER_TEST_DELAY);
 			},
 			// errback
-			function (error) {
+			function (error, description) {
 				debug('%s test failed: %s', testType, error);
-				self.events.networktesterror(testType, error);
+				self.events.networktesterror(testType, error, description);
 
 				// Next test.
 				setTimeout(function () {
@@ -619,6 +619,7 @@ var domify = require('domify'),
 function WebRTCSupportWidget(data) {
 	// Whether this is a locally generated test or a remotely retrieved one.
 	this.local = data.local;
+	this.browser = data.browser;
 
 	// Create the widget dom and append it to the container.
 	this.dom = $(domify(html));
@@ -637,10 +638,10 @@ function WebRTCSupportWidget(data) {
 
 WebRTCSupportWidget.prototype.supported = function (supported) {
 	if (supported) {
-		this.dom.status.description.text('WebRTC supported');
+		this.dom.status.description.text('WebRTC supported: ' + this.browser);
 	} else {
 		this.dom.status.description.addClass('error');
-		this.dom.status.description.text('WebRTC unsupported');
+		this.dom.status.description.text('WebRTC not supported: ' + this.browser);
 	}
 
 	if (this.local) {
@@ -650,7 +651,7 @@ WebRTCSupportWidget.prototype.supported = function (supported) {
 	}
 };
 
-},{"./html/output.js":9,"domify":28,"jquery":29}],8:[function(require,module,exports){
+},{"./html/output.js":9,"domify":29,"jquery":30}],8:[function(require,module,exports){
 (function (global){
 /**
  * Expose a dummy object.
@@ -668,6 +669,7 @@ var debug = require('debug')('doctortcweb'),
 	debugerror = require('debug')('doctortcweb:ERROR'),
 	urlParse = require('url-parse'),
 	$ = require('jquery'),
+	doctortc = require('doctortc'),
 	settings = require('../etc/doctortc-settings.json'),
 	Tester = require('./Tester'),
 	NetworkTestWidget = require('./NetworkTestWidget'),
@@ -689,7 +691,7 @@ var debug = require('debug')('doctortcweb'),
 		}
 
 		scrollingDown = true;
-		$('body').animate({ scrollTop: $(document).height() }, 2000, function () {
+		$('body').animate({ scrollTop: $(document).height() }, 1000, function () {
 			scrollingDown = false;
 		});
 	};
@@ -727,9 +729,12 @@ function loadDOM() {
 function runTest() {
 	debug('runTest()');
 
+	debug('browser: %s', doctortc.browser);
+
 	var webrtcSupportWidget,
 		networkTestWidget,
-		results = {};
+		results = {},
+		isFirstNetworkTest = true;
 
 	if (tester) {
 		tester.cancel();
@@ -737,12 +742,13 @@ function runTest() {
 
 	webrtcSupportWidget = new WebRTCSupportWidget({
 		container: dom.test,
-		local: true
+		local: true,
+		browser: doctortc.browser
 	});
 
 	tester = new Tester(settings, {
-		cancel: function () {
-			debug('test canceled');
+		cancel: function (description) {
+			debug('test canceled: %s', description);
 
 			hideWarning();
 		},
@@ -767,6 +773,14 @@ function runTest() {
 				container: dom.test,
 				local: true
 			});
+
+			if (isFirstNetworkTest) {
+				global.addEventListener('blur', function () {
+					debugerror('runTest() | browser tab lost focus, canceling test');
+					tester.cancel('browser tab lost focus');
+				});
+			}
+			isFirstNetworkTest = false;
 		},
 
 		networktestprogress: function (received, total) {
@@ -789,10 +803,10 @@ function runTest() {
 			};
 		},
 
-		networktesterror: function (type, error) {
-			debug('%s test failed', type, error);
+		networktesterror: function (type, error, description) {
+			debug(type + ' test failed: ' + error + (description ? ' (' + description + ')' : ''));
 
-			networkTestWidget.fail(error);
+			networkTestWidget.fail(error, description);
 
 			// Scroll down.
 			scrollDown();
@@ -843,6 +857,7 @@ function uploadTest(results) {
 		testId;
 
 	data = {
+		browser: doctortc.browser,
 		webrtcSupport: true,
 		connectivityTestDatas: []
 	};
@@ -882,7 +897,7 @@ function uploadTest(results) {
 		data: JSON.stringify(data),
 		global: false,
 		success : function (data, textStatus, jqXHR) {
-			debug('upload success [textStatus:%s, data:%o]', textStatus, data);
+			debug('upload success');
 
 			locationHeader = jqXHR.getResponseHeader('Location');
 			if (!locationHeader) {
@@ -975,7 +990,8 @@ function getTest(testId) {
 
 		webrtcSupportWidget = new WebRTCSupportWidget({
 			container: dom.test,
-			local: false
+			local: false,
+			browser: data.browser
 		});
 
 		webrtcSupportWidget.supported(data.webrtcSupport);
@@ -1011,7 +1027,7 @@ function getTest(testId) {
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../etc/doctortc-settings.json":1,"./ErrorWidget":2,"./NetworkTestWidget":3,"./SpinnerWidget":4,"./TestInfoWidget":5,"./Tester":6,"./WebRTCSupportWidget":7,"debug":10,"jquery":29,"url-parse":30}],9:[function(require,module,exports){
+},{"../etc/doctortc-settings.json":1,"./ErrorWidget":2,"./NetworkTestWidget":3,"./SpinnerWidget":4,"./TestInfoWidget":5,"./Tester":6,"./WebRTCSupportWidget":7,"debug":10,"doctortc":14,"jquery":30,"url-parse":31}],9:[function(require,module,exports){
 
 
 
@@ -1543,6 +1559,7 @@ var debug = require('debug')('doctortc:NetworkTester'),
  */
 	ERRORS = {
 		CONNECTION_TIMEOUT: 'connection timeout',
+		TEST_TIMEOUT: 'test timeout',
 		INTERNAL_ERROR: 'internal error',
 		CANCELED: 'canceled'
 	},
@@ -1551,6 +1568,8 @@ var debug = require('debug')('doctortc:NetworkTester'),
 		DATACHANNEL_MAX_RETRANSMIT_TIME: 0,
 		// DataChannel connection timeout (milliseconds).
 		CONNECT_TIMEOUT: 4000,
+		// Test timeout if no data is received during this interval.
+		TEST_TIMEOUT: 4000,
 		// Interval for retransmitting the START message (milliseconds).
 		START_MESSAGE_INTERVAL: 100,
 		// Interval for sending test packets (milliseconds).
@@ -1592,6 +1611,11 @@ function NetworkTester(turnServer, callback, errback, options) {
 	// Timer that limits the time while connecting to the TURN server.
 	this.connectTimeout = options.connectTimeout || C.CONNECT_TIMEOUT;
 	this.connectTimer = null;
+
+	// Timer that control receipt of data or fires after N seconds, and a
+	// flag for it.
+	this.testTimer = null;
+	this.isReceivingData = false;
 
 	// Timer that limits the time while receiving the START message.
 	this.startMessageInterval = C.START_MESSAGE_INTERVAL;
@@ -1749,14 +1773,14 @@ function NetworkTester(turnServer, callback, errback, options) {
  */
 
 
-NetworkTester.prototype.cancel = function () {
+NetworkTester.prototype.cancel = function (description) {
 	if (this.testEnded) {
 		return;
 	}
 
-	debug('cancel()');
+	debug('cancel() [description:"%s"]', description);
 
-	close.call(this, ERRORS.CANCELED);
+	close.call(this, ERRORS.CANCELED, description);
 };
 
 
@@ -1765,8 +1789,8 @@ NetworkTester.prototype.cancel = function () {
  */
 
 
-function close(errorCode) {
-	debug('close() [errorCode:%s]', errorCode);
+function close(errorCode, errorDescription) {
+	debug('close() [errorCode:%s, errorDescription:%s]', errorCode, errorDescription);
 
 	if (this.testEnded) {
 		return;
@@ -1795,20 +1819,20 @@ function close(errorCode) {
 	this.packet = null;
 
 	clearTimeout(this.connectTimer);
+	clearTimeout(this.testTimer);
 	clearTimeout(this.sendingTimer);
 	clearInterval(this.startMessagePeriodicTimer);
 	clearInterval(this.endMessagePeriodicTimer);
 
 	// Call the user's errback if error is given.
 	if (errorCode) {
-		this.errback(errorCode);
+		this.errback(errorCode, errorDescription);
 	}
 }
 
 
 function onCreateOfferSuccess1(desc) {
 	// Remove local ICE candidates automatically added by Firefox.
-	// TODO: ¿Hace falta? ¿o sirve con iceTransports=relay?
 	desc.sdp = desc.sdp.replace(/^a=candidate.*\r\n/gm, '');
 
 	debug('onCreateOfferSuccess1() | [offer:%o]', desc);
@@ -1842,7 +1866,6 @@ function onCreateOfferError1(error) {
 
 function onCreateAnswerSuccess2(desc) {
 	// Remove local ICE candidates automatically added by Firefox.
-	// TODO: ¿Hace falta? ¿o sirve con iceTransports=relay?
 	desc.sdp = desc.sdp.replace(/^a=candidate.*\r\n/gm, '');
 
 	debug('onCreateAnswerSuccess2() | [answer:%o]', desc);
@@ -1926,8 +1949,20 @@ function onMessage1() {
 function startTest() {
 	debug('startTest()');
 
+	var self = this;
+
 	// Test begins now.
 	this.testBeginTime = new Date();
+
+	// Run the test timer.
+	this.testTimer = setInterval(function () {
+		if (!self.isReceivingData) {
+			// Close and fire the user's errback.
+			close.call(self, ERRORS.TEST_TIMEOUT);
+		}
+
+		self.isReceivingData = false;
+	}, C.TEST_TIMEOUT);
 
 	// Send all the packets.
 	sendTestPackets.call(this);
@@ -2056,6 +2091,8 @@ function onMessage2(event) {
 		receivedPacketId,
 		packetInfo,
 		now;
+
+	this.isReceivingData = true;
 
 	// Test packet received.
 	if (event.data.byteLength === this.packetSize) {
@@ -2220,7 +2257,7 @@ function endTest() {
 	this.callback(statistics, this.packetsInfo, this.pendingOngoingData);
 }
 
-},{"debug":15,"rtcninja":20}],14:[function(require,module,exports){
+},{"debug":16,"rtcninja":21}],14:[function(require,module,exports){
 /**
  * Expose the doctortc object.
  */
@@ -2232,6 +2269,7 @@ var doctortc = module.exports = {},
  */
 	debug = require('debug')('doctortc'),
 	rtcninja = require('rtcninja'),
+	browser = require('bowser').browser,
 	NetworkTester = require('./NetworkTester');
 
 
@@ -2251,6 +2289,49 @@ doctortc.hasWebRTC = function () {
 };
 
 
+Object.defineProperty(doctortc, 'browser', {
+	get: function () {
+		var model;
+
+		if (browser.chrome) {
+			model = 'Chrome';
+		} else if (browser.firefox) {
+			model = 'Firefox';
+		} else if (browser.msie) {
+			model = 'Internet Explorer';
+		} else if (browser.safari) {
+			model = 'Safari';
+		} else if (browser.android) {
+			model = 'Android';
+		} else if (browser.iphone) {
+			model = 'iPhone';
+		} else if (browser.ipad) {
+			model = 'iPad';
+		} else if (browser.ios) {
+			model = 'iOS';
+		} else if (browser.opera) {
+			model = 'Opera';
+		} else if (browser.gecko) {
+			model = 'Gecko';
+		} else if (browser.webkit) {
+			model = 'Webkit';
+		} else {
+			model = 'Unknown';
+		}
+
+		if (browser.mobile) {
+			model = model + ' mobile';
+		} else if (browser.tablet) {
+			model = model + ' + tablet';
+		}
+
+		model = (model + ' ' + browser.version).trim();
+
+		return model;
+	}
+});
+
+
 doctortc.test = function (turnServer, callback, errback, options) {
 	if (!rtcninja.hasWebRTC()) {
 		throw new Error('doctortc.test() | no WebRTC support');
@@ -2265,13 +2346,255 @@ doctortc.test = function (turnServer, callback, errback, options) {
 // Expose the debug module.
 doctortc.debug = require('debug');
 
-},{"./NetworkTester":13,"debug":15,"rtcninja":20}],15:[function(require,module,exports){
+},{"./NetworkTester":13,"bowser":15,"debug":16,"rtcninja":21}],15:[function(require,module,exports){
+/*!
+  * Bowser - a browser detector
+  * https://github.com/ded/bowser
+  * MIT License | (c) Dustin Diaz 2014
+  */
+
+!function (name, definition) {
+  if (typeof module != 'undefined' && module.exports) module.exports['browser'] = definition()
+  else if (typeof define == 'function' && define.amd) define(definition)
+  else this[name] = definition()
+}('bowser', function () {
+  /**
+    * See useragents.js for examples of navigator.userAgent
+    */
+
+  var t = true
+
+  function detect(ua) {
+
+    function getFirstMatch(regex) {
+      var match = ua.match(regex);
+      return (match && match.length > 1 && match[1]) || '';
+    }
+
+    var iosdevice = getFirstMatch(/(ipod|iphone|ipad)/i).toLowerCase()
+      , likeAndroid = /like android/i.test(ua)
+      , android = !likeAndroid && /android/i.test(ua)
+      , versionIdentifier = getFirstMatch(/version\/(\d+(\.\d+)?)/i)
+      , tablet = /tablet/i.test(ua)
+      , mobile = !tablet && /[^-]mobi/i.test(ua)
+      , result
+
+    if (/opera|opr/i.test(ua)) {
+      result = {
+        name: 'Opera'
+      , opera: t
+      , version: versionIdentifier || getFirstMatch(/(?:opera|opr)[\s\/](\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/windows phone/i.test(ua)) {
+      result = {
+        name: 'Windows Phone'
+      , windowsphone: t
+      , msie: t
+      , version: getFirstMatch(/iemobile\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/msie|trident/i.test(ua)) {
+      result = {
+        name: 'Internet Explorer'
+      , msie: t
+      , version: getFirstMatch(/(?:msie |rv:)(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/chrome|crios|crmo/i.test(ua)) {
+      result = {
+        name: 'Chrome'
+      , chrome: t
+      , version: getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (iosdevice) {
+      result = {
+        name : iosdevice == 'iphone' ? 'iPhone' : iosdevice == 'ipad' ? 'iPad' : 'iPod'
+      }
+      // WTF: version is not part of user agent in web apps
+      if (versionIdentifier) {
+        result.version = versionIdentifier
+      }
+    }
+    else if (/sailfish/i.test(ua)) {
+      result = {
+        name: 'Sailfish'
+      , sailfish: t
+      , version: getFirstMatch(/sailfish\s?browser\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/seamonkey\//i.test(ua)) {
+      result = {
+        name: 'SeaMonkey'
+      , seamonkey: t
+      , version: getFirstMatch(/seamonkey\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/firefox|iceweasel/i.test(ua)) {
+      result = {
+        name: 'Firefox'
+      , firefox: t
+      , version: getFirstMatch(/(?:firefox|iceweasel)[ \/](\d+(\.\d+)?)/i)
+      }
+      if (/\((mobile|tablet);[^\)]*rv:[\d\.]+\)/i.test(ua)) {
+        result.firefoxos = t
+      }
+    }
+    else if (/silk/i.test(ua)) {
+      result =  {
+        name: 'Amazon Silk'
+      , silk: t
+      , version : getFirstMatch(/silk\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (android) {
+      result = {
+        name: 'Android'
+      , version: versionIdentifier
+      }
+    }
+    else if (/phantom/i.test(ua)) {
+      result = {
+        name: 'PhantomJS'
+      , phantom: t
+      , version: getFirstMatch(/phantomjs\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/blackberry|\bbb\d+/i.test(ua) || /rim\stablet/i.test(ua)) {
+      result = {
+        name: 'BlackBerry'
+      , blackberry: t
+      , version: versionIdentifier || getFirstMatch(/blackberry[\d]+\/(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/(web|hpw)os/i.test(ua)) {
+      result = {
+        name: 'WebOS'
+      , webos: t
+      , version: versionIdentifier || getFirstMatch(/w(?:eb)?osbrowser\/(\d+(\.\d+)?)/i)
+      };
+      /touchpad\//i.test(ua) && (result.touchpad = t)
+    }
+    else if (/bada/i.test(ua)) {
+      result = {
+        name: 'Bada'
+      , bada: t
+      , version: getFirstMatch(/dolfin\/(\d+(\.\d+)?)/i)
+      };
+    }
+    else if (/tizen/i.test(ua)) {
+      result = {
+        name: 'Tizen'
+      , tizen: t
+      , version: getFirstMatch(/(?:tizen\s?)?browser\/(\d+(\.\d+)?)/i) || versionIdentifier
+      };
+    }
+    else if (/safari/i.test(ua)) {
+      result = {
+        name: 'Safari'
+      , safari: t
+      , version: versionIdentifier
+      }
+    }
+    else result = {}
+
+    // set webkit or gecko flag for browsers based on these engines
+    if (/(apple)?webkit/i.test(ua)) {
+      result.name = result.name || "Webkit"
+      result.webkit = t
+      if (!result.version && versionIdentifier) {
+        result.version = versionIdentifier
+      }
+    } else if (!result.opera && /gecko\//i.test(ua)) {
+      result.name = result.name || "Gecko"
+      result.gecko = t
+      result.version = result.version || getFirstMatch(/gecko\/(\d+(\.\d+)?)/i)
+    }
+
+    // set OS flags for platforms that have multiple browsers
+    if (android || result.silk) {
+      result.android = t
+    } else if (iosdevice) {
+      result[iosdevice] = t
+      result.ios = t
+    }
+
+    // OS version extraction
+    var osVersion = '';
+    if (iosdevice) {
+      osVersion = getFirstMatch(/os (\d+([_\s]\d+)*) like mac os x/i);
+      osVersion = osVersion.replace(/[_\s]/g, '.');
+    } else if (android) {
+      osVersion = getFirstMatch(/android[ \/-](\d+(\.\d+)*)/i);
+    } else if (result.windowsphone) {
+      osVersion = getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i);
+    } else if (result.webos) {
+      osVersion = getFirstMatch(/(?:web|hpw)os\/(\d+(\.\d+)*)/i);
+    } else if (result.blackberry) {
+      osVersion = getFirstMatch(/rim\stablet\sos\s(\d+(\.\d+)*)/i);
+    } else if (result.bada) {
+      osVersion = getFirstMatch(/bada\/(\d+(\.\d+)*)/i);
+    } else if (result.tizen) {
+      osVersion = getFirstMatch(/tizen[\/\s](\d+(\.\d+)*)/i);
+    }
+    if (osVersion) {
+      result.osversion = osVersion;
+    }
+
+    // device type extraction
+    var osMajorVersion = osVersion.split('.')[0];
+    if (tablet || iosdevice == 'ipad' || (android && (osMajorVersion == 3 || (osMajorVersion == 4 && !mobile))) || result.silk) {
+      result.tablet = t
+    } else if (mobile || iosdevice == 'iphone' || iosdevice == 'ipod' || android || result.blackberry || result.webos || result.bada) {
+      result.mobile = t
+    }
+
+    // Graded Browser Support
+    // http://developer.yahoo.com/yui/articles/gbs
+    if ((result.msie && result.version >= 10) ||
+        (result.chrome && result.version >= 20) ||
+        (result.firefox && result.version >= 20.0) ||
+        (result.safari && result.version >= 6) ||
+        (result.opera && result.version >= 10.0) ||
+        (result.ios && result.osversion && result.osversion.split(".")[0] >= 6) ||
+        (result.blackberry && result.version >= 10.1)
+        ) {
+      result.a = t;
+    }
+    else if ((result.msie && result.version < 10) ||
+        (result.chrome && result.version < 20) ||
+        (result.firefox && result.version < 20.0) ||
+        (result.safari && result.version < 6) ||
+        (result.opera && result.version < 10.0) ||
+        (result.ios && result.osversion && result.osversion.split(".")[0] < 6)
+        ) {
+      result.c = t
+    } else result.x = t
+
+    return result
+  }
+
+  var bowser = detect(typeof navigator !== 'undefined' ? navigator.userAgent : '')
+
+
+  /*
+   * Set our detect method to the main bowser object so we can
+   * reuse it to test other user agents.
+   * This is needed to implement future tests.
+   */
+  bowser._detect = detect;
+
+  return bowser
+});
+
+},{}],16:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./debug":16,"dup":10}],16:[function(require,module,exports){
+},{"./debug":17,"dup":10}],17:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"ms":17}],17:[function(require,module,exports){
+},{"dup":11,"ms":18}],18:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],18:[function(require,module,exports){
+},{"dup":12}],19:[function(require,module,exports){
 (function (global){
 /**
  * Expose the Adapter function/object.
@@ -2550,7 +2873,7 @@ function Adapter(options) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bowser":22,"debug":23}],19:[function(require,module,exports){
+},{"bowser":23,"debug":24}],20:[function(require,module,exports){
 /**
  * Expose the RTCPeerConnection class.
  */
@@ -3199,7 +3522,7 @@ function getLocalDescription() {
 	return this._localDescription;
 }
 
-},{"./Adapter":18,"debug":23,"merge":26}],20:[function(require,module,exports){
+},{"./Adapter":19,"debug":24,"merge":27}],21:[function(require,module,exports){
 /**
  * Expose the rtcninja function/object.
  */
@@ -3287,262 +3610,22 @@ rtcninja.debug = require('debug');
 // Expose browser.
 rtcninja.browser = browser;
 
-},{"./Adapter":18,"./RTCPeerConnection":19,"./version":21,"bowser":22,"debug":23}],21:[function(require,module,exports){
+},{"./Adapter":19,"./RTCPeerConnection":20,"./version":22,"bowser":23,"debug":24}],22:[function(require,module,exports){
 /**
  * Expose the 'version' field of package.json.
  */
 module.exports = require('../package.json').version;
 
 
-},{"../package.json":27}],22:[function(require,module,exports){
-/*!
-  * Bowser - a browser detector
-  * https://github.com/ded/bowser
-  * MIT License | (c) Dustin Diaz 2014
-  */
-
-!function (name, definition) {
-  if (typeof module != 'undefined' && module.exports) module.exports['browser'] = definition()
-  else if (typeof define == 'function' && define.amd) define(definition)
-  else this[name] = definition()
-}('bowser', function () {
-  /**
-    * See useragents.js for examples of navigator.userAgent
-    */
-
-  var t = true
-
-  function detect(ua) {
-
-    function getFirstMatch(regex) {
-      var match = ua.match(regex);
-      return (match && match.length > 1 && match[1]) || '';
-    }
-
-    var iosdevice = getFirstMatch(/(ipod|iphone|ipad)/i).toLowerCase()
-      , likeAndroid = /like android/i.test(ua)
-      , android = !likeAndroid && /android/i.test(ua)
-      , versionIdentifier = getFirstMatch(/version\/(\d+(\.\d+)?)/i)
-      , tablet = /tablet/i.test(ua)
-      , mobile = !tablet && /[^-]mobi/i.test(ua)
-      , result
-
-    if (/opera|opr/i.test(ua)) {
-      result = {
-        name: 'Opera'
-      , opera: t
-      , version: versionIdentifier || getFirstMatch(/(?:opera|opr)[\s\/](\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/windows phone/i.test(ua)) {
-      result = {
-        name: 'Windows Phone'
-      , windowsphone: t
-      , msie: t
-      , version: getFirstMatch(/iemobile\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/msie|trident/i.test(ua)) {
-      result = {
-        name: 'Internet Explorer'
-      , msie: t
-      , version: getFirstMatch(/(?:msie |rv:)(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/chrome|crios|crmo/i.test(ua)) {
-      result = {
-        name: 'Chrome'
-      , chrome: t
-      , version: getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (iosdevice) {
-      result = {
-        name : iosdevice == 'iphone' ? 'iPhone' : iosdevice == 'ipad' ? 'iPad' : 'iPod'
-      }
-      // WTF: version is not part of user agent in web apps
-      if (versionIdentifier) {
-        result.version = versionIdentifier
-      }
-    }
-    else if (/sailfish/i.test(ua)) {
-      result = {
-        name: 'Sailfish'
-      , sailfish: t
-      , version: getFirstMatch(/sailfish\s?browser\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/seamonkey\//i.test(ua)) {
-      result = {
-        name: 'SeaMonkey'
-      , seamonkey: t
-      , version: getFirstMatch(/seamonkey\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/firefox|iceweasel/i.test(ua)) {
-      result = {
-        name: 'Firefox'
-      , firefox: t
-      , version: getFirstMatch(/(?:firefox|iceweasel)[ \/](\d+(\.\d+)?)/i)
-      }
-      if (/\((mobile|tablet);[^\)]*rv:[\d\.]+\)/i.test(ua)) {
-        result.firefoxos = t
-      }
-    }
-    else if (/silk/i.test(ua)) {
-      result =  {
-        name: 'Amazon Silk'
-      , silk: t
-      , version : getFirstMatch(/silk\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (android) {
-      result = {
-        name: 'Android'
-      , version: versionIdentifier
-      }
-    }
-    else if (/phantom/i.test(ua)) {
-      result = {
-        name: 'PhantomJS'
-      , phantom: t
-      , version: getFirstMatch(/phantomjs\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/blackberry|\bbb\d+/i.test(ua) || /rim\stablet/i.test(ua)) {
-      result = {
-        name: 'BlackBerry'
-      , blackberry: t
-      , version: versionIdentifier || getFirstMatch(/blackberry[\d]+\/(\d+(\.\d+)?)/i)
-      }
-    }
-    else if (/(web|hpw)os/i.test(ua)) {
-      result = {
-        name: 'WebOS'
-      , webos: t
-      , version: versionIdentifier || getFirstMatch(/w(?:eb)?osbrowser\/(\d+(\.\d+)?)/i)
-      };
-      /touchpad\//i.test(ua) && (result.touchpad = t)
-    }
-    else if (/bada/i.test(ua)) {
-      result = {
-        name: 'Bada'
-      , bada: t
-      , version: getFirstMatch(/dolfin\/(\d+(\.\d+)?)/i)
-      };
-    }
-    else if (/tizen/i.test(ua)) {
-      result = {
-        name: 'Tizen'
-      , tizen: t
-      , version: getFirstMatch(/(?:tizen\s?)?browser\/(\d+(\.\d+)?)/i) || versionIdentifier
-      };
-    }
-    else if (/safari/i.test(ua)) {
-      result = {
-        name: 'Safari'
-      , safari: t
-      , version: versionIdentifier
-      }
-    }
-    else result = {}
-
-    // set webkit or gecko flag for browsers based on these engines
-    if (/(apple)?webkit/i.test(ua)) {
-      result.name = result.name || "Webkit"
-      result.webkit = t
-      if (!result.version && versionIdentifier) {
-        result.version = versionIdentifier
-      }
-    } else if (!result.opera && /gecko\//i.test(ua)) {
-      result.name = result.name || "Gecko"
-      result.gecko = t
-      result.version = result.version || getFirstMatch(/gecko\/(\d+(\.\d+)?)/i)
-    }
-
-    // set OS flags for platforms that have multiple browsers
-    if (android || result.silk) {
-      result.android = t
-    } else if (iosdevice) {
-      result[iosdevice] = t
-      result.ios = t
-    }
-
-    // OS version extraction
-    var osVersion = '';
-    if (iosdevice) {
-      osVersion = getFirstMatch(/os (\d+([_\s]\d+)*) like mac os x/i);
-      osVersion = osVersion.replace(/[_\s]/g, '.');
-    } else if (android) {
-      osVersion = getFirstMatch(/android[ \/-](\d+(\.\d+)*)/i);
-    } else if (result.windowsphone) {
-      osVersion = getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i);
-    } else if (result.webos) {
-      osVersion = getFirstMatch(/(?:web|hpw)os\/(\d+(\.\d+)*)/i);
-    } else if (result.blackberry) {
-      osVersion = getFirstMatch(/rim\stablet\sos\s(\d+(\.\d+)*)/i);
-    } else if (result.bada) {
-      osVersion = getFirstMatch(/bada\/(\d+(\.\d+)*)/i);
-    } else if (result.tizen) {
-      osVersion = getFirstMatch(/tizen[\/\s](\d+(\.\d+)*)/i);
-    }
-    if (osVersion) {
-      result.osversion = osVersion;
-    }
-
-    // device type extraction
-    var osMajorVersion = osVersion.split('.')[0];
-    if (tablet || iosdevice == 'ipad' || (android && (osMajorVersion == 3 || (osMajorVersion == 4 && !mobile))) || result.silk) {
-      result.tablet = t
-    } else if (mobile || iosdevice == 'iphone' || iosdevice == 'ipod' || android || result.blackberry || result.webos || result.bada) {
-      result.mobile = t
-    }
-
-    // Graded Browser Support
-    // http://developer.yahoo.com/yui/articles/gbs
-    if ((result.msie && result.version >= 10) ||
-        (result.chrome && result.version >= 20) ||
-        (result.firefox && result.version >= 20.0) ||
-        (result.safari && result.version >= 6) ||
-        (result.opera && result.version >= 10.0) ||
-        (result.ios && result.osversion && result.osversion.split(".")[0] >= 6) ||
-        (result.blackberry && result.version >= 10.1)
-        ) {
-      result.a = t;
-    }
-    else if ((result.msie && result.version < 10) ||
-        (result.chrome && result.version < 20) ||
-        (result.firefox && result.version < 20.0) ||
-        (result.safari && result.version < 6) ||
-        (result.opera && result.version < 10.0) ||
-        (result.ios && result.osversion && result.osversion.split(".")[0] < 6)
-        ) {
-      result.c = t
-    } else result.x = t
-
-    return result
-  }
-
-  var bowser = detect(typeof navigator !== 'undefined' ? navigator.userAgent : '')
-
-
-  /*
-   * Set our detect method to the main bowser object so we can
-   * reuse it to test other user agents.
-   * This is needed to implement future tests.
-   */
-  bowser._detect = detect;
-
-  return bowser
-});
-
-},{}],23:[function(require,module,exports){
+},{"../package.json":28}],23:[function(require,module,exports){
+arguments[4][15][0].apply(exports,arguments)
+},{"dup":15}],24:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./debug":24,"dup":10}],24:[function(require,module,exports){
+},{"./debug":25,"dup":10}],25:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"ms":25}],25:[function(require,module,exports){
+},{"dup":11,"ms":26}],26:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],26:[function(require,module,exports){
+},{"dup":12}],27:[function(require,module,exports){
 /*!
  * @name JavaScript/NodeJS Merge v1.2.0
  * @author yeikos
@@ -3718,7 +3801,7 @@ arguments[4][12][0].apply(exports,arguments)
 	}
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
   "version": "0.5.3",
@@ -3770,7 +3853,7 @@ module.exports={
   "_from": "rtcninja@*"
 }
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -3880,7 +3963,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -13087,7 +13170,7 @@ return jQuery;
 
 }));
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 var required = require('requires-port')
@@ -13314,7 +13397,7 @@ URL.qs = qs;
 URL.location = lolcation;
 module.exports = URL;
 
-},{"./lolcation":31,"querystringify":32,"requires-port":33}],31:[function(require,module,exports){
+},{"./lolcation":32,"querystringify":33,"requires-port":34}],32:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -13363,7 +13446,7 @@ module.exports = function lolcation(loc) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":30}],32:[function(require,module,exports){
+},{"./":31}],33:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -13426,7 +13509,7 @@ function querystringify(obj, prefix) {
 exports.stringify = querystringify;
 exports.parse = querystring;
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 /**
@@ -13466,7 +13549,7 @@ module.exports = function required(port, protocol) {
   return port !== 0;
 };
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * Copyright (c) 2011-2014 Felix Gnass
  * Licensed under the MIT license

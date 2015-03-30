@@ -77,8 +77,8 @@ body > div.description {
   margin: 20px auto 40px;
 }
 body > div.description > div.wrapper {
-  width: 37.5%;
-  min-width: 450px;
+  width: 50%;
+  min-width: 600px;
   margin: 0 auto;
 }
 body > div.description > div.wrapper > div.art {

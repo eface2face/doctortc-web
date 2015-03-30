@@ -1,7 +1,8 @@
+- En DB debe guardarse "browser" (tabla principal).
+
 - No mando ningún test si webrtcSupport es false.
 
 - Botón para repetir el test o para hacerlo tras un get.
 
 - Añadir .remove() a todos los widgets para que quiten su DOM y sus eventos jQuery.
 
-- Si pierde el focus durante el test, invalidarlo de alguna forma.
