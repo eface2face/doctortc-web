@@ -5,12 +5,12 @@
 div.ErrorWidget {
 	display: none;  // Hidden initially.
 	padding: 20px 0;
-	background-color: rgba(#000, 0.75);
+	background-color: #1e1e1e;
 	@include border-radius(10px);
 
 	> p.text {
 		text-align: center;
 		font-size: 1.6rem;
-		color: #ff1f13;
+		color: $color-orange;
 	}
 }
